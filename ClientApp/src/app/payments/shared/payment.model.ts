@@ -1,0 +1,51 @@
+import { BaseModel } from "../../shared/base-model.model";
+
+export interface Payment extends BaseModel {
+  PaymentNo?: string;
+  /// <summary>
+  /// PAYMENTH.ACCDAT_0
+  /// </summary>
+  PaymentDate?: Date;
+  PaymentDateString?: string;
+  /// <summary>
+  /// PAYMENTH.BAN_0
+  /// </summary>
+  BankNo?: string;
+  /// <summary>
+  /// BANK.DES_0
+  /// </summary>
+  BankName?: string;
+  /// <summary>
+  /// PAYMENTH.BPR_0
+  /// </summary>
+  PayBy?: string;
+  /// <summary>
+  /// PAYMENTH.CUR_0
+  /// </summary>
+  Currency?: string;
+  /// <summary>
+  /// PAYMENTH.AMTCUR_0
+  /// </summary>
+  Amount?: number;
+  AmountString?: string;
+  /// <summary>
+  /// PAYMENTH.DES_0
+  /// </summary>
+  Description?: string;
+  /// <summary>
+  /// PAYMENTH.CHQNUM_0
+  /// </summary>
+  CheckNo?: string;
+  /// <summary>
+  /// PAYMENTH.BPAINV_0
+  /// </summary>
+  SupplierNo?: string;
+  /// <summary>
+  /// PAYMENTH.BPANAM_0
+  /// </summary>
+  SupplierName?: string;
+  /// <summary>
+  /// PAYMENTH.REF_0
+  /// </summary>
+  RefNo?: string;
+}

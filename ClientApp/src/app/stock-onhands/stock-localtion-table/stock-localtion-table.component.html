@@ -1,0 +1,33 @@
+<table *ngIf="datasource">
+  <p-table [columns]="columns" [value]="datasource">
+    <!--<ng-template pTemplate="header" let-columns>
+    <tr>
+      <th *ngFor="let col of columns" [ngStyle]="{'width.px':col.width}">
+        {{col.header}}
+      </th>
+    </tr>
+  </ng-template>-->
+    <ng-template pTemplate="body" let-rowData let-columns="columns">
+      <tr>
+        <td *ngFor="let col of columns" [ngStyle]="{'width.px':col.width}">
+          {{rowData[col.field] || '-'}}
+        </td>
+      </tr>
+    </ng-template>
+    <!--<ng-template pTemplate="footer" let-columns>
+      <tr>
+        <td *ngFor="let col of columns">
+          <ng-container *ngIf="col.field !== 'LocationCode';Else TotalBlock">
+            Total
+          </ng-container>
+          <ng-template #TotalBlock>
+            {{datasource}}
+          </ng-template>
+        </td>
+      </tr>
+    </ng-template>-->
+  </p-table>
+</table>
+<!--<ng-template #ElseBlock>
+  <span style="text-align:center;">Data not been found.</span>
+</ng-template>-->

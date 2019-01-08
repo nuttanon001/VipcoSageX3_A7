@@ -1,0 +1,57 @@
+@import "../../../sass/styles.scss";
+
+body {
+  /*font-family: Roboto, 'Helvetica Neue', sans-serif;*/
+  font-family: Roboto, 'Helvetica Neue', monospace;
+}
+
+.app-layout {
+  width: 99vw;
+  display: flex;
+  flex-direction: column;
+
+  .navigation {
+    order: 1;
+    flex-grow: 0;
+
+    @media print {
+      display: none;
+    }
+
+    @include mq('tablet-wide') {
+      font-size: 1rem;
+    }
+  }
+
+  .error-message {
+    cursor: pointer;
+    position: absolute;
+    z-index: 2;
+    order: 2;
+    color: white;
+    align-items: center;
+    text-align: center;
+    background-color: maroon;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    top: 60px;
+    left: 5px;
+    right: 5px;
+  }
+
+
+  .main-content {
+    order: 3;
+    flex-grow: 1;
+    margin: 7px;
+
+    @include mq('tablet-wide') {
+      font-size: 1rem;
+    }
+  }
+}
+
+
+

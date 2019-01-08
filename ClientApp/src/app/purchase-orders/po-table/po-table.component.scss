@@ -1,0 +1,16 @@
+@import "../../shared/styles/table.style.scss";
+
+.mat-column-PurchaseOrderNo, .mat-column-OrderDateString,
+.mat-column-ReceivedStatusString, .mat-column-CloseStatusString,
+.mat-column-ProjectName {
+  flex: 0 0 100px;
+}
+
+.mat-column-Command {
+  flex: 0 0 50px;
+}
+
+mat-form-field {
+  width: 250px;
+  margin: 5px;
+}

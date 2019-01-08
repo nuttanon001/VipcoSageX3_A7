@@ -1,0 +1,15 @@
+
+:host /deep/ .ui-table .ui-table-tbody > tr {
+  background: #ffffff;
+  color: steelblue;
+  font-size: smaller;
+  border: none;
+}
+
+:host /deep/ .ui-table .ui-table-thead > tr > th {
+  background: #ebedf0;
+  color: cadetblue;
+  border-color: transparent;
+  border: none;
+  font-size: smaller;
+}

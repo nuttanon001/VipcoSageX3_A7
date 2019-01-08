@@ -1,0 +1,68 @@
+<div class="master-container">
+  <form [formGroup]="reportForm" class="header">
+    <div>
+      <i class="fa fa-search" aria-hidden="true"></i>
+      <mat-form-field>
+        <input matInput placeholder="Filter By Text"
+               formControlName="Filter">
+      </mat-form-field>
+    </div>
+    <div>
+      <i class="fa fa-product-hunt" aria-hidden="true"></i>
+      <mat-form-field style="width:250px;">
+        <input matInput placeholder="Filter By Category" class="click-input"
+               (click)="onShowDialog('Category')" readonly
+               formControlName="BankString">
+      </mat-form-field>
+    </div>
+    <div>
+      <button mat-mini-fab color="warn" (click)="resetFilter()"
+              matTooltipPosition="left" matTooltip="Reset all filter">
+        <mat-icon>clear</mat-icon>
+      </button>
+      <button mat-mini-fab color="accent" (click)="onReport()"
+              matTooltipPosition="left" matTooltip="Export" style="margin-left:10px;">
+        <mat-icon>file_download</mat-icon>
+      </button>
+    </div>
+  </form>
+  <div *ngIf="needReset" class="loading-shade">
+    <mat-spinner *ngIf="needReset"></mat-spinner>
+  </div>
+  <div class="detail">
+    <table *ngIf="!needReset" id="table1">
+      <!-- 70vh -->
+      <p-table [first]="first" [columns]="columns" [value]="datasource" [lazy]="true" (onLazyLoad)="loadDataLazy($event)"
+               [paginator]="true" [rows]="rowPage" [rowsPerPageOptions]="[15,25,50]"
+               [totalRecords]="totalRecords" [loading]="loading" [scrollable]="true" [scrollHeight]="mobHeight" [style]="{width:'98vw'}">
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [ngStyle]="{'width.px':col.width}">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngStyle]="{'width.px':col.width}"
+                class="PrHeader">
+              {{col.header}}
+              <p-sortIcon *ngIf="col.type === 2" [field]="col.field"></p-sortIcon>
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td *ngFor="let col of filterItemsOfType()" [ngStyle]="{'width.px':col.width}" [attr.colspan]="col.type === 3 ? 9 : 0">
+              <span *ngIf="col.field !== 'StockLocations' && col.type !== 3;else elseBlock" [innerHtml]="rowData[col.field] || '-'"></span>
+              <ng-template #elseBlock>
+                <div *ngIf="col.field === 'StockLocations'">
+                  <app-stock-localtion-table [datasource]="rowData[col.field]"></app-stock-localtion-table>
+                </div>
+              </ng-template>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </table>
+  </div>
+</div>
+

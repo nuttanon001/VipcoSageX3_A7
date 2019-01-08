@@ -1,0 +1,75 @@
+export interface PurchaseReceipt {
+  /// <summary>
+  /// PRECEIPTD.PTHNUM
+  /// </summary>
+  RcNumber?: string;
+  /// <summary>
+  /// PRECEIPTD.PTDLIN
+  /// </summary>
+  RcLine?: number;
+  /// <summary>
+  /// PRECEIPTD.RCPDAT
+  /// </summary>
+  RcDate?: Date;
+  RcDateString?: string;
+  /// <summary>
+  /// STOJOU.STA_0
+  /// </summary>
+  RcStatus?: string;
+  /// <summary>
+  /// PRECEIPTD.PUU
+  /// </summary>
+  RcPurUom?: string;
+  /// <summary>
+  /// PRECEIPTD.STU
+  /// </summary>
+  RcStkUom?: string;
+  /// <summary>
+  /// PRECEIPTD.UOM
+  /// </summary>
+  RcUom?: string;
+  /// <summary>
+  /// PORDERQ.QTYPUU
+  /// </summary>
+  RcQuantityPur?: number;
+  /// <summary>
+  /// PORDERQ.QTYSTU
+  /// </summary>
+  RcQuantityStk?: number;
+  /// <summary>
+  /// PORDERQ.QTYUOM
+  /// </summary>
+  RcQuantityUom?: number;
+  /// <summary>
+  /// PORDERQ.QTYWEU
+  /// </summary>
+  RcQuantityWeight?: number;
+  /// <summary>
+  /// PORDERQ.INVQTYPUU
+  /// </summary>
+  RcQuantityInvPur?: number;
+  /// <summary>
+  /// PORDERQ.INVQTYSTU
+  /// </summary>
+  RcQuantityInvStk?: number;
+  /// <summary>
+  /// CPTANALIN.CCE0 WHERE VCRNUM = PTHNUM AND VCRLIN = PTDLIN
+  /// </summary>
+  RcBranch?: string;
+  RcBranchName?: string;
+  /// <summary>
+  /// CPTANALIN.CCE1 WHERE VCRNUM = PTHNUM AND VCRLIN = PTDLIN
+  /// </summary>
+  RcWorkItem?: string;
+  RcWorkItemName?: string;
+  /// <summary>
+  /// CPTANALIN.CCE3 WHERE VCRNUM = PTHNUM AND VCRLIN = PTDLIN
+  /// </summary>
+  RcWorkGroup?: string;
+  RcWorkGroupName?: string;
+  /// <summary>
+  /// CPTANALIN.CCE2 WHERE VCRNUM = PTHNUM AND VCRLIN = PTDLIN
+  /// </summary>
+  RcProject?: string;
+  RcProjectName?: string;
+}

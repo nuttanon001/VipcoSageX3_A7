@@ -1,0 +1,124 @@
+<nav class="navbar navbar-expand navbar-dark bg-bar">
+  <!--<a class="navbar-brand" href="#">Always expand</a> "/assets/logoVIPCO.png" -->
+  <a class="navbar-brand" href="http://192.168.2.31/">
+    <img src="/extends-sagex3/images/logoVIPCO.png" width="36" height="36" class="d-inline-block align-top">
+    Vipco Extend SageX3 System (To apps page)
+  </a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#Mynavbars"
+          aria-controls="Mynavbars" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse pl-4" id="Mynavbars">
+    <ul class="navbar-nav mr-auto size-24">
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="['/home']" routerLinkActive="active">
+          <span class="icon-content">
+            <mat-icon>home</mat-icon>
+          </span>
+        </a>
+      </li>
+      <li class="nav-item mx-1">
+        <a #mainMenu="matMenuTrigger" [matMenuTriggerFor]="menu1"
+           (mouseover)="menuOnOpenMenu(1)" class="nav-link">
+          <span>SageX3 Data(s)</span>
+        </a>
+        <!--Menu-1-->
+        <mat-menu class="mouseleave" #menu1="matMenu" [overlapTrigger]="true">
+          <div (mouseleave)="menuOnCloseMenu(1)" style="padding-top:20px;">
+            <!--<button mat-menu-item [routerLink]="['/purchase-order']" routerLinkActive="active">
+      <mat-icon>cast_connected</mat-icon>
+      <span>&nbsp;Purchase Order&nbsp;</span>
+  </button>-->
+            <button mat-menu-item [routerLink]="['/purchase-request']" routerLinkActive="active">
+              <!--matBadge-->
+              <mat-icon>add_shopping_cart</mat-icon>
+              <span>&nbsp;Purchase Request&nbsp;</span>
+            </button>
+            <button mat-menu-item [routerLink]="['/stock-onhand']" routerLinkActive="active">
+              <!--matBadge-->
+              <mat-icon>settings_ethernet</mat-icon>
+              <span>&nbsp;Stock Onhand&nbsp;</span>
+            </button>
+            <button mat-menu-item [routerLink]="['/stock-movement']" routerLinkActive="active">
+              <!--matBadge-->
+              <mat-icon>swap_horiz</mat-icon>
+              <span>&nbsp;Stock Movement&nbsp;</span>
+            </button>
+            <hr />
+            <button mat-menu-item [routerLink]="['/payment']" routerLinkActive="active">
+              <!--matBadge-->
+              <mat-icon>account_balance_wallet</mat-icon>
+              <span>&nbsp;Payment&nbsp;</span>
+            </button>
+            <button mat-menu-item [routerLink]="['/mics-account']" routerLinkActive="active">
+              <!--matBadge-->
+              <mat-icon>card_membership</mat-icon>
+              <span>&nbsp;Issue & Journal &nbsp;</span>
+            </button>
+          </div>
+        </mat-menu>
+      </li>
+      <!--Menu-2-->
+      <!--<li class="nav-item mx-1" *ngIf="GetLevel3">
+        <a #subMenu="matMenuTrigger" [matMenuTriggerFor]="menu2"
+           (mouseenter)="menuOnOpenMenu(2)" class="nav-link">
+          <span>Other</span>
+        </a>
+        <mat-menu class="mouseleave" #menu2="matMenu" [overlapTrigger]="true">
+          <div (mouseleave)="menuOnCloseMenu(2)" style="padding-top:20px;">
+            <button mat-menu-item [routerLink]="['/home']" routerLinkActive="active">
+              <mat-icon>date_range</mat-icon>
+              <span>&nbsp;Other&nbsp;</span>
+            </button>
+          </div>
+        </mat-menu>
+      </li>-->
+      <!--Menu3-->
+      <!--<li class="nav-item mx-1" *ngIf="GetLevel3">
+    <a #subMenu2="matMenuTrigger" [matMenuTriggerFor]="menu3"
+        (mouseover)="menuOnOpenMenu(3)"
+        class="nav-link">
+      For Admin
+    </a>
+    <mat-menu class="mouseleave" #menu3="matMenu" [overlapTrigger]="true">
+      <div (mouseleave)="menuOnCloseMenu(3)" style="padding-top:20px;">
+        <button mat-menu-item [routerLink]="['/home']" routerLinkActive="active">
+          <mat-icon>person_add</mat-icon>
+          <span>&nbsp;Admin&nbsp;</span>
+        </button>
+      </div>
+    </mat-menu>
+  </li>-->
+    </ul>
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a *ngIf="showLogin; else elseBlock" [routerLink]="['/login']">
+          <span class="icon-content">
+            &nbsp;Login&nbsp;
+          </span>
+        </a>
+        <ng-template #elseBlock>
+          <!-- (mouseenter)="menuOnOpenMenu(2)"  -->
+          <a class="mx-1" #userMenu="matMenuTrigger"
+             [matMenuTriggerFor]="userMenu1" (mouseenter)="menuOnOpenMenu(4)">
+            Welcome <i>{{userName}}</i>
+          </a>
+          <!-- (mouseleave)="menuOnCloseMenu(2)" -->
+          <mat-menu class="mouseleave" #userMenu1="matMenu" [overlapTrigger]="true">
+            <div style="padding-top:20px;" (mouseleave)="menuOnCloseMenu(4)">
+              <button mat-menu-item [routerLink]="['/register','1']" routerLinkActive="active">
+                <mat-icon>account_circle</mat-icon>
+                <span>&nbsp;Edit user info&nbsp;</span>
+              </button>
+              <button mat-menu-item (click)="onLogOut()">
+                <mat-icon>exit_to_app</mat-icon>
+                <span>&nbsp;Logout&nbsp;</span>
+              </button>
+            </div>
+          </mat-menu>
+        </ng-template>
+      </li>
+    </ul>
+  </div>
+</nav>

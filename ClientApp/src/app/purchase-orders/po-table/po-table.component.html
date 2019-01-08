@@ -1,0 +1,80 @@
+<div class="mat-elevation-z8">
+  <div *ngIf="isLoadingResults" class="loading-shade">
+    <mat-spinner *ngIf="isLoadingResults"></mat-spinner>
+  </div>
+  <div class="mx-2">
+    <search-box [isDisabled]="isDisabled" [isOnlyCreate]="isOnlyCreate"></search-box>
+
+    <mat-form-field>
+      <mat-select placeholder="JobNumber" #selectProjectCode>
+        <mat-option>-</mat-option>
+        <mat-option *ngFor="let item of projectCodes" [value]="item.ProjectCode">
+          {{item.ProjectCode}} | {{ item.ProjectName }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-select placeholder="WorkGroup" #selectWorkGroup>
+        <mat-option>-</mat-option>
+        <mat-option *ngFor="let item of workGroups" [value]="item.WorkGroupCode">
+          {{item.WorkGroupCode }} | {{ item.WorkGroupName }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-select placeholder="BomLevel" #selectBomLevel>
+        <mat-option>-</mat-option>
+        <mat-option *ngFor="let item of bomLevels" [value]="item.BomLevelCode">
+          {{item.BomLevelCode}} | {{ item.BomLevelName }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+  </div>
+  <mat-table #table [dataSource]="dataSource" matSort matSortDisableClear>
+    <!-- Generic column definition -->
+    <ng-container *ngFor="let column of columns" [matColumnDef]="column.columnField">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>{{ column.columnName }}</mat-header-cell>
+      <!--<mat-cell *matCellDef="let row">{{ column.cell(row) }}</mat-cell>-->
+      <ng-container *ngIf="column.columnField !== 'select' && column.columnField !== 'command';else ElseBlock">
+        <mat-cell *matCellDef="let row" [ngStyle]="{'color': row.CloseStatus !== 1 ? 'steelblue' : 'black'}">{{ column.cell(row) }}</mat-cell>
+      </ng-container>
+      <!--Else Block-->
+      <ng-template #ElseBlock>
+        <mat-cell *matCellDef="let row">
+          <mat-checkbox (click)="$event.stopPropagation()"
+                        (change)="$event ? selection.toggle(row) : null"
+                        [checked]="selection.isSelected(row)">
+          </mat-checkbox>
+        </mat-cell>
+      </ng-template>
+    </ng-container>
+
+    <!-- Command Column -->
+    <ng-container matColumnDef="Command">
+      <mat-header-cell *matHeaderCellDef>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <button mat-icon-button color="primary" (click)="onActionClick(row,1)"
+                [disabled]="readOnly" matTooltip="PO Information *click">
+          <mat-icon>perm_device_information</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"
+             [ngClass]="{'mat-row-highlight': selectedRow === row}"
+             (click)="selection.toggle(row)"
+             style="cursor:pointer"></mat-row>
+  </mat-table>
+
+  <mat-paginator #paginator
+                 [pageSize]="10"
+                 [pageSizeOptions]="[10, 25, 50]"
+                 [length]="resultsLength"
+                 [showFirstLastButtons]="true">
+  </mat-paginator>
+</div>
