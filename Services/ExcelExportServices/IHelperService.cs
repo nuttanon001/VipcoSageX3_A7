@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VipcoSageX3.ViewModels;
 
-namespace VipcoSageX3.Services
+namespace VipcoSageX3.Services.ExcelExportServices
 {
     public interface IHelperService
     {
@@ -15,5 +15,7 @@ namespace VipcoSageX3.Services
         MemoryStream CreateExcelFile(DataTable table, string sheetName);
 
         MemoryStream CreateExcelFileMuiltSheets(List<MuiltSheetViewModel> muiltSheets);
+
+        MemoryStream CreateExcelFilePivotTables(DataTable table, string sheetName, string pivotName = "");
     }
 }

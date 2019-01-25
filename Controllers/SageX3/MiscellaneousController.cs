@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using VipcoSageX3.Models.SageX3;
 using VipcoSageX3.Services;
 using VipcoSageX3.ViewModels;
+using VipcoSageX3.Services.ExcelExportServices;
 
 namespace VipcoSageX3.Controllers.SageX3
 {

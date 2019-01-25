@@ -1,26 +1,20 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Linq.Expressions;
-using System.Collections.Generic;
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-
-using VipcoSageX3.Services;
-using VipcoSageX3.ViewModels;
-using VipcoSageX3.Models.SageX3;
-
-using AutoMapper;
-using VipcoSageX3.Helper;
-using RtfPipe;
-using System.Data;
-using Microsoft.AspNetCore.Hosting;
-using ClosedXML.Excel;
-using System.IO;
-using System.Text;
+﻿using AutoMapper;
 using HtmlAgilityPack;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using RtfPipe;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using VipcoSageX3.Models.SageX3;
+using VipcoSageX3.Services;
+using VipcoSageX3.Services.ExcelExportServices;
+using VipcoSageX3.ViewModels;
 
 namespace VipcoSageX3.Controllers.SageX3
 {
@@ -39,10 +33,12 @@ namespace VipcoSageX3.Controllers.SageX3
         private readonly IRepositoryDapperSageX3<PurchaseRequestAndOrderViewModel> repositoryPrAndPo;
         private readonly IRepositoryDapperSageX3<PurchaseReceiptViewModel> repositoryPrq;
         private readonly IHelperService helperService;
+        private readonly ExcelWorkBookService excelWorkBookService;
         private readonly IHostingEnvironment hosting;
 
         //Context
         private readonly SageX3Context sageContext;
+
         // GET: api/PurchaseRequest
         public PurchaseRequestController(
             IRepositorySageX3<Prequisd> repo,
@@ -58,6 +54,7 @@ namespace VipcoSageX3.Controllers.SageX3
             IHelperService helper,
             SageX3Context x3Context,
             IHostingEnvironment hosting,
+            ExcelWorkBookService  workBookService,
             IMapper mapper) : base(repo, mapper)
         {
             // Repository SageX3
@@ -76,6 +73,7 @@ namespace VipcoSageX3.Controllers.SageX3
             this.sageContext = x3Context;
             // Hosting
             this.hosting = hosting;
+            this.excelWorkBookService = workBookService;
         }
 
         private string ConvertHtmlToText(string Html)
@@ -100,7 +98,7 @@ namespace VipcoSageX3.Controllers.SageX3
             return sb.ToString();
         }
 
-        private async Task<List<PurchaseRequestAndOrderViewModel>> GetData(ScrollViewModel Scroll,bool option = false)
+        private async Task<List<PurchaseRequestAndOrderViewModel>> GetData(ScrollViewModel Scroll, bool option = false)
         {
             #region Query
 
@@ -131,11 +129,10 @@ namespace VipcoSageX3.Controllers.SageX3
                                  dimPo = all6
                              }).AsQueryable();
 
-
-
-            #endregion
+            #endregion Query
 
             #region Filter&Scroll
+
             // Filter
             var filters = string.IsNullOrEmpty(Scroll.Filter) ? new string[] { "" }
                                 : Scroll.Filter.Split(null);
@@ -182,66 +179,77 @@ namespace VipcoSageX3.Controllers.SageX3
                     else
                         QueryData = QueryData.OrderBy(x => x.prh.Pshnum0);
                     break;
+
                 case "Project":
                     if (Scroll.SortOrder == -1)
                         QueryData = QueryData.OrderByDescending(x => x.prh.Pjth0);
                     else
                         QueryData = QueryData.OrderBy(x => x.prh.Pjth0);
                     break;
+
                 case "PRDateString":
                     if (Scroll.SortOrder == -1)
                         QueryData = QueryData.OrderByDescending(x => x.prh.Prqdat0);
                     else
                         QueryData = QueryData.OrderBy(x => x.prh.Prqdat0);
                     break;
+
                 case "ItemName":
                     if (Scroll.SortOrder == -1)
                         QueryData = QueryData.OrderByDescending(x => x.prd.Itmdes0);
                     else
                         QueryData = QueryData.OrderBy(x => x.prd.Itmdes0);
                     break;
+
                 case "Branch":
                     if (Scroll.SortOrder == -1)
                         QueryData = QueryData.OrderByDescending(x => x.dim.Cce0);
                     else
                         QueryData = QueryData.OrderBy(x => x.dim.Cce0);
                     break;
+
                 case "WorkItemName":
                     if (Scroll.SortOrder == -1)
                         QueryData = QueryData.OrderByDescending(x => x.dim.Cce1);
                     else
                         QueryData = QueryData.OrderBy(x => x.dim.Cce1);
                     break;
+
                 case "WorkGroupName":
                     if (Scroll.SortOrder == -1)
                         QueryData = QueryData.OrderByDescending(x => x.dim.Cce3);
                     else
                         QueryData = QueryData.OrderBy(x => x.dim.Cce3);
                     break;
+
                 case "PoNumber":
                     if (Scroll.SortOrder == -1)
                         QueryData = QueryData.OrderByDescending(x => x.pod.Pohnum0);
                     else
                         QueryData = QueryData.OrderBy(x => x.pod.Pohnum0);
                     break;
+
                 case "PoDateString":
                     if (Scroll.SortOrder == -1)
                         QueryData = QueryData.OrderByDescending(x => x.pod.Orddat0);
                     else
                         QueryData = QueryData.OrderBy(x => x.pod.Orddat0);
                     break;
+
                 case "DueDateString":
                     if (Scroll.SortOrder == -1)
                         QueryData = QueryData.OrderByDescending(x => x.pod.Extrcpdat0);
                     else
                         QueryData = QueryData.OrderBy(x => x.pod.Extrcpdat0);
                     break;
+
                 case "CreateBy":
                     if (Scroll.SortOrder == -1)
                         QueryData = QueryData.OrderByDescending(x => x.prh.Creusr0);
                     else
                         QueryData = QueryData.OrderBy(x => x.prh.Creusr0);
                     break;
+
                 default:
                     QueryData = QueryData.OrderByDescending(x => x.prh.Prqdat0);
                     break;
@@ -249,7 +257,7 @@ namespace VipcoSageX3.Controllers.SageX3
 
             Scroll.TotalRow = await QueryData.CountAsync();
 
-            #endregion
+            #endregion Filter&Scroll
 
             #region MyRegion
 
@@ -413,12 +421,12 @@ namespace VipcoSageX3.Controllers.SageX3
                 }
             }
 
-            #endregion
+            #endregion MyRegion
 
             return MapDatas;
         }
 
-        private async Task<List<PurchaseRequestAndOrderViewModel>> GetData2(ScrollViewModel scroll,bool option = false)
+        private async Task<List<PurchaseRequestAndOrderViewModel>> GetData2(ScrollViewModel scroll, bool option = false)
         {
             if (scroll != null)
             {
@@ -473,7 +481,7 @@ namespace VipcoSageX3.Controllers.SageX3
             }
             return null;
         }
-        
+
         private async Task<List<PurchaseRequestAndOrderViewModel>> GetData3(ScrollViewModel scroll)
         {
             if (scroll != null)
@@ -605,6 +613,13 @@ namespace VipcoSageX3.Controllers.SageX3
                             sSort = $"PRH.CREUSR_0 ASC";//QueryData = QueryData.OrderBy(x => x.prh.Creusr0);
                         break;
 
+                    case "RequestDateString":
+                        if (scroll.SortOrder == -1)
+                            sSort = $"PRD.EXTRCPDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.prh.Creusr0);
+                        else
+                            sSort = $"PRD.EXTRCPDAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.prh.Creusr0);
+                        break;
+                      
                     default:
                         sSort = $"PRH.PRQDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.prh.Prqdat0);
                         break;
@@ -613,6 +628,7 @@ namespace VipcoSageX3.Controllers.SageX3
                 #endregion Sort
 
                 #region Query
+
                 // Query mulitple command
                 sQuery = $@"SELECT		--PRH
                                         PRH.CLEFLG_0 AS [PrCloseStatusInt],
@@ -667,35 +683,35 @@ namespace VipcoSageX3.Controllers.SageX3
                                         (SELECT CAC.DES_0 FROM VIPCO.CACCE CAC WHERE CAC.CCE_0 = DIMPO.CCE_2) AS [PoProjectName],
                                         (SELECT CAC.DES_0 FROM VIPCO.CACCE CAC WHERE CAC.CCE_0 = DIMPO.CCE_3) AS [PoWorkGroupName]
                             FROM		VIPCO.PREQUIS PRH
-                                        INNER JOIN VIPCO.PREQUISD PRD 
+                                        INNER JOIN VIPCO.PREQUISD PRD
                                             ON PRH.PSHNUM_0 = PRD.PSHNUM_0
-                                        LEFT OUTER JOIN VIPCO.PREQUISO PRO 
-                                            ON PRD.PSHNUM_0 = PRO.PSHNUM_0 
+                                        LEFT OUTER JOIN VIPCO.PREQUISO PRO
+                                            ON PRD.PSHNUM_0 = PRO.PSHNUM_0
                                             AND PRD.PSDLIN_0 = PRO.PSDLIN_0
-                                        LEFT OUTER JOIN VIPCO.PORDER POH 
+                                        LEFT OUTER JOIN VIPCO.PORDER POH
                                             ON PRO.POHNUM_0 = POH.POHNUM_0
-                                        LEFT OUTER JOIN VIPCO.PORDERQ POD 
-                                            ON PRO.POHNUM_0 = POD.POHNUM_0 
+                                        LEFT OUTER JOIN VIPCO.PORDERQ POD
+                                            ON PRO.POHNUM_0 = POD.POHNUM_0
                                             AND PRO.POPLIN_0 = POD.POPLIN_0
-                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIM 
+                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIM
                                             ON DIM.ABRFIC_0 = 'PSD'
                                             AND DIM.VCRTYP_0 = 0
                                             AND DIM.VCRSEQ_0 = 0
                                             AND	DIM.CPLCLE_0 = ''
                                             AND	DIM.ANALIG_0 = 1
-                                            AND PRD.PSHNUM_0 = DIM.VCRNUM_0 
+                                            AND PRD.PSHNUM_0 = DIM.VCRNUM_0
                                             AND PRD.PSDLIN_0 = DIM.VCRLIN_0
-                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIMPO 
+                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIMPO
                                             ON DIMPO.ABRFIC_0 = 'POP'
                                             AND DIMPO.VCRTYP_0 = 0
                                             AND	POD.POQSEQ_0 = DIMPO.VCRSEQ_0
-                                            AND POD.POHNUM_0 = DIMPO.VCRNUM_0 
+                                            AND POD.POHNUM_0 = DIMPO.VCRNUM_0
                                             AND POD.POPLIN_0 = DIMPO.VCRLIN_0
                                             AND	DIMPO.CPLCLE_0 = ''
                                             AND	DIMPO.ANALIG_0 = 1
-                                        LEFT OUTER JOIN VIPCO.ITMMASTER ITM 
+                                        LEFT OUTER JOIN VIPCO.ITMMASTER ITM
                                             ON PRD.ITMREF_0 = ITM.ITMREF_0
-                                        LEFT OUTER JOIN VIPCO.TEXCLOB TXT 
+                                        LEFT OUTER JOIN VIPCO.TEXCLOB TXT
                                             ON TXT.CODE_0 = ITM.PURTEX_0
                             {sWhere}
                             ORDER BY    {sSort}
@@ -703,35 +719,35 @@ namespace VipcoSageX3.Controllers.SageX3
                             FETCH NEXT  @Take ROWS ONLY; -- take 10 rows;
                             SELECT	    COUNT(*)
                             FROM	    VIPCO.PREQUIS PRH
-                                        INNER JOIN VIPCO.PREQUISD PRD 
+                                        INNER JOIN VIPCO.PREQUISD PRD
                                             ON PRH.PSHNUM_0 = PRD.PSHNUM_0
-                                        LEFT OUTER JOIN VIPCO.PREQUISO PRO 
-                                            ON PRD.PSHNUM_0 = PRO.PSHNUM_0 
+                                        LEFT OUTER JOIN VIPCO.PREQUISO PRO
+                                            ON PRD.PSHNUM_0 = PRO.PSHNUM_0
                                             AND PRD.PSDLIN_0 = PRO.PSDLIN_0
-                                        LEFT OUTER JOIN VIPCO.PORDER POH 
+                                        LEFT OUTER JOIN VIPCO.PORDER POH
                                             ON PRO.POHNUM_0 = POH.POHNUM_0
-                                        LEFT OUTER JOIN VIPCO.PORDERQ POD 
-                                            ON PRO.POHNUM_0 = POD.POHNUM_0 
+                                        LEFT OUTER JOIN VIPCO.PORDERQ POD
+                                            ON PRO.POHNUM_0 = POD.POHNUM_0
                                             AND PRO.POPLIN_0 = POD.POPLIN_0
-                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIM 
+                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIM
                                             ON DIM.ABRFIC_0 = 'PSD'
                                             AND DIM.VCRTYP_0 = 0
                                             AND DIM.VCRSEQ_0 = 0
                                             AND	DIM.CPLCLE_0 = ''
                                             AND	DIM.ANALIG_0 = 1
-                                            AND PRD.PSHNUM_0 = DIM.VCRNUM_0 
+                                            AND PRD.PSHNUM_0 = DIM.VCRNUM_0
                                             AND PRD.PSDLIN_0 = DIM.VCRLIN_0
-                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIMPO 
+                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIMPO
                                             ON DIMPO.ABRFIC_0 = 'POP'
                                             AND DIMPO.VCRTYP_0 = 0
                                             AND	POD.POQSEQ_0 = DIMPO.VCRSEQ_0
-                                            AND POD.POHNUM_0 = DIMPO.VCRNUM_0 
+                                            AND POD.POHNUM_0 = DIMPO.VCRNUM_0
                                             AND POD.POPLIN_0 = DIMPO.VCRLIN_0
                                             AND	DIMPO.CPLCLE_0 = ''
                                             AND	DIMPO.ANALIG_0 = 1
-                                        LEFT OUTER JOIN VIPCO.ITMMASTER ITM 
+                                        LEFT OUTER JOIN VIPCO.ITMMASTER ITM
                                             ON PRD.ITMREF_0 = ITM.ITMREF_0
-                                        LEFT OUTER JOIN VIPCO.TEXCLOB TXT 
+                                        LEFT OUTER JOIN VIPCO.TEXCLOB TXT
                                             ON TXT.CODE_0 = ITM.PURTEX_0
                             {sWhere};";
 
@@ -752,7 +768,6 @@ namespace VipcoSageX3.Controllers.SageX3
                     }
                     else
                         item.ItemName = await this.repositoryItem.GetFirstOrDefaultAsync(x => x.Itmdes10, x => x.Itmref0 == item.ItemCode);
-                   
 
                     if (item?.ItemWeight > 0)
                         item.PrWeight = (double)item.ItemWeight * item.QuantityPur;
@@ -788,23 +803,23 @@ namespace VipcoSageX3.Controllers.SageX3
 
                                 FROM		[VIPCO].[STOJOU] STO WITH(INDEX(STOJOU_STJ0))
                                             LEFT OUTER JOIN [VIPCO].[PRECEIPTD] PRC
-                                            ON STO.VCRNUM_0 = PRC.PTHNUM_0 
+                                            ON STO.VCRNUM_0 = PRC.PTHNUM_0
                                             AND	STO.VCRLIN_0 = PRC.PTDLIN_0
-                                            LEFT OUTER JOIN VIPCO.CPTANALIN DIM 
+                                            LEFT OUTER JOIN VIPCO.CPTANALIN DIM
                                                 ON DIM.ABRFIC_0 = 'PTD'
                                                 AND DIM.VCRTYP_0 = 0
                                                 AND DIM.VCRSEQ_0 = 0
                                                 AND	DIM.CPLCLE_0 = ''
                                                 AND	DIM.ANALIG_0 = 1
-                                                AND PRC.PTHNUM_0 = DIM.VCRNUM_0 
+                                                AND PRC.PTHNUM_0 = DIM.VCRNUM_0
                                                 AND PRC.PTDLIN_0 = DIM.VCRLIN_0
-                                WHERE		PRC.POHNUM_0 = @PoNumber 
+                                WHERE		PRC.POHNUM_0 = @PoNumber
                                             AND PRC.POPLIN_0 = @PoLine
                                             AND PRC.POQSEQ_0 = @PoSequence
                                             AND ((STO.VCRTYPREG_0 = 0 AND STO.REGFLG_0 = 1) OR (STO.VCRTYPREG_0 = 17 AND STO.REGFLG_0 = 1))
                                 ORDER BY	PRC.POPLIN_0 ASC";
 
-                    var receipts = await this.repositoryPrq.GetListEntites(sReceipt, new { item.PoNumber,item.PoLine,item.PoSequence });
+                    var receipts = await this.repositoryPrq.GetListEntites(sReceipt, new { item.PoNumber, item.PoLine, item.PoSequence });
                     if (receipts.Any())
                     {
                         receipts.ForEach(receipt =>
@@ -818,7 +833,6 @@ namespace VipcoSageX3.Controllers.SageX3
                     else
                         item.DeadLine = item.DueDate != null ? item.ToDate.Date > item.DueDate.Value.Date : false;
 
-
                     #endregion Receipt
                 }
 
@@ -826,7 +840,7 @@ namespace VipcoSageX3.Controllers.SageX3
             }
             return null;
         }
-        
+
         // POST: api/PurchaseRequest/GetScroll
         [HttpPost("GetScroll")]
         public async Task<IActionResult> GetScroll([FromBody] ScrollViewModel Scroll)
@@ -838,6 +852,10 @@ namespace VipcoSageX3.Controllers.SageX3
             try
             {
                 var MapDatas = await this.GetData3(Scroll);
+                foreach (var item in MapDatas)
+                {
+                    item.ItemName = this.helperService.ConvertHtmlToText(item.ItemName);
+                }
                 return new JsonResult(new ScrollDataViewModel<PurchaseRequestAndOrderViewModel>(Scroll, MapDatas), this.DefaultJsonSettings);
             }
             catch (Exception ex)
@@ -895,6 +913,180 @@ namespace VipcoSageX3.Controllers.SageX3
                         new DataColumn("WorkGroup-2",typeof(string)),
                         new DataColumn("TypePo",typeof(string)),
                         new DataColumn("PoStatus",typeof(string)),
+                        new DataColumn("RcNumber",typeof(string)),
+                        new DataColumn("RcStatus",typeof(string)),
+                        new DataColumn("HeatNumber",typeof(string)),
+                        new DataColumn("RcProject",typeof(string)),
+                        new DataColumn("RcDateString",typeof(string)),
+                        new DataColumn("RcQuantityPur",typeof(string)),
+                        new DataColumn("RcQuantityWeight",typeof(string)),
+                        new DataColumn("RcPurUom",typeof(string)),
+                        new DataColumn("RcBranch",typeof(string)),
+                        new DataColumn("RcWorkItemName",typeof(string)),
+                        new DataColumn("RcWorkGroupName",typeof(string))
+                    });
+
+                    //Adding the Rows
+                    foreach (var item in MapDatas)
+                    {
+                        item.ItemName = this.helperService.ConvertHtmlToText(item.ItemName);
+                        item.ItemName = item.ItemName.Replace("\r\n", "");
+                        item.ItemName = item.ItemName.Replace("\n", "");
+                        //var Receipt = "";
+
+                        if (item.PurchaseReceipts.Any())
+                        {
+                            foreach (var item2 in item.PurchaseReceipts)
+                            {
+                                table.Rows.Add(
+                                    item.PrNumber,
+                                    item.Project,
+                                    item.PRDateString,
+                                    item.RequestDateString,
+                                    item.ItemCode,
+                                    item.ItemName,
+                                    item.PurUom,
+                                    item.Branch,
+                                    item.WorkItemName,
+                                    item.WorkGroupName,
+                                    item.QuantityPur,
+                                    item.PrWeightString,
+                                    item.PrCloseStatus,
+                                    item.CreateBy,
+
+                                    item.PoNumber,
+                                    item.PoProject,
+                                    item.PoDateString,
+                                    item.DueDateString,
+                                    item.PoQuantityPur,
+                                    item.PoQuantityWeight,
+                                    item.PoPurUom,
+                                    item.PoBranch,
+                                    item.PoWorkItemName,
+                                    item.PoWorkGroupName,
+                                    item.PoStatus,
+                                    item.CloseStatus,
+
+                                    item2.RcNumber,
+                                    item2.RcStatus,
+                                    item2.HeatNumber,
+                                    item2.RcProject,
+                                    item2.RcDateString,
+                                    item2.RcQuantityPur,
+                                    item2.RcQuantityWeight,
+                                    item2.RcPurUom,
+                                    item2.RcBranch,
+                                    item2.RcWorkItemName,
+                                    item2.RcWorkGroupName
+                                );
+                            }
+                        }
+                        else
+                        {
+                            table.Rows.Add(
+                                   item.PrNumber,
+                                   item.Project,
+                                   item.PRDateString,
+                                   item.RequestDateString,
+                                   item.ItemCode,
+                                   item.ItemName,
+                                   item.PurUom,
+                                   item.Branch,
+                                   item.WorkItemName,
+                                   item.WorkGroupName,
+                                   item.QuantityPur,
+                                   item.PrWeightString,
+                                   item.PrCloseStatus,
+                                   item.CreateBy,
+
+                                   item.PoNumber,
+                                   item.PoProject,
+                                   item.PoDateString,
+                                   item.DueDateString,
+                                   item.PoQuantityPur,
+                                   item.PoQuantityWeight,
+                                   item.PoPurUom,
+                                   item.PoBranch,
+                                   item.PoWorkItemName,
+                                   item.PoWorkGroupName,
+                                   item.PoStatus,
+                                   item.CloseStatus,
+
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   "",
+                                   ""
+                               );
+                        }
+                      
+                    }
+
+                    return File(this.helperService.CreateExcelFilePivotTables(table,"PurchaseStatus","PurchaseDataPivot"),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Payment_Report.xlsx");
+                }
+            }
+            catch (Exception ex)
+            {
+                Message = $"Has error{ex.ToString()}";
+            }
+            return BadRequest(new { Error = Message });
+        }
+
+        /*
+        public async Task<IActionResult> GetReport2([FromBody] ScrollViewModel Scroll)
+        {
+            if (Scroll == null)
+                return BadRequest();
+
+            var Message = "Data not been found.";
+            try
+            {
+                // Set skip and take
+                // Scroll.Skip = 0;
+                // Scroll.Take = 999;
+
+                var MapDatas = await this.GetData3(Scroll);
+
+                if (MapDatas.Any())
+                {
+                    var table = new DataTable();
+                    //Adding the Columns
+                    table.Columns.AddRange(new DataColumn[]
+                    {
+                        new DataColumn("PrNo", typeof(string)),
+                        new DataColumn("JobNo", typeof(string)),
+                        new DataColumn("PrDate",typeof(string)),
+                        new DataColumn("RequestDate",typeof(string)),
+                        new DataColumn("Item-Code",typeof(string)),
+                        new DataColumn("Item-Name",typeof(string)),
+                        new DataColumn("Uom",typeof(string)),
+                        new DataColumn("Branch",typeof(string)),
+                        new DataColumn("BomLv",typeof(string)),
+                        new DataColumn("WorkGroup",typeof(string)),
+                        new DataColumn("Qty",typeof(int)),
+                        new DataColumn("PrWeight",typeof(string)),
+                        new DataColumn("PrClose",typeof(string)),
+                        new DataColumn("Create",typeof(string)),
+
+                        new DataColumn("PoNo",typeof(string)),
+                        new DataColumn("JobNo-2",typeof(string)),
+                        new DataColumn("PoDate",typeof(string)),
+                        new DataColumn("DueDate",typeof(string)),
+                        new DataColumn("QtyPo",typeof(int)),
+                        new DataColumn("Weight",typeof(int)),
+                        new DataColumn("Uom-2",typeof(string)),
+                        new DataColumn("Branch-2",typeof(string)),
+                        new DataColumn("BomLv-2",typeof(string)),
+                        new DataColumn("WorkGroup-2",typeof(string)),
+                        new DataColumn("TypePo",typeof(string)),
+                        new DataColumn("PoStatus",typeof(string)),
                         new DataColumn("Receipt",typeof(string))
                     });
 
@@ -905,7 +1097,7 @@ namespace VipcoSageX3.Controllers.SageX3
                         item.ItemName = item.ItemName.Replace("\r\n", "");
                         item.ItemName = item.ItemName.Replace("\n", "");
                         var Receipt = "";
-                        foreach(var item2 in item.PurchaseReceipts)
+                        foreach (var item2 in item.PurchaseReceipts)
                         {
                             if (!string.IsNullOrEmpty(Receipt))
                                 Receipt += "\r\n";
@@ -920,7 +1112,7 @@ namespace VipcoSageX3.Controllers.SageX3
                             Receipt += item2.RcPurUom + "     ";
                             Receipt += item2.RcBranch + "     ";
                             Receipt += item2.RcWorkItemName + "     ";
-                            Receipt += item2.RcWorkGroupName + "     ";                            
+                            Receipt += item2.RcWorkGroupName + "     ";
                         }
 
                         table.Rows.Add(
@@ -955,34 +1147,16 @@ namespace VipcoSageX3.Controllers.SageX3
                         );
                     }
 
-                    //var templateFolder = this.hosting.WebRootPath + "/reports/";
-                    //var fileExcel = templateFolder + $"PurchaseStatus_Report.xlsx";
-                    //var memory = new MemoryStream();
-
-                    //using (XLWorkbook wb = new XLWorkbook())
-                    //{
-                    //    var wsFreeze = wb.Worksheets.Add(table, "PurchaseStatus");
-                    //    wsFreeze.Columns().AdjustToContents();
-                    //    wsFreeze.SheetView.FreezeRows(1);
-                    //    wb.SaveAs(memory);
-
-                    //}                    
-
-                    //using (var stream = new FileStream(fileExcel, FileMode.Open))
-                    //{
-                    //    await stream.CopyToAsync(memory);
-                    //}
-                    //memory.Position = 0;
-
-                    return File(this.helperService.CreateExcelFile(table, "PurchaseStatus"), 
+                    return File(this.helperService.CreateExcelFile(table, "PurchaseStatus"),
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Payment_Report.xlsx");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Message = $"Has error{ex.ToString()}";
             }
             return BadRequest(new { Error = Message });
         }
+        */
     }
 }

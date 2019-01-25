@@ -12,11 +12,11 @@
     <div class="right-content ml-1">
       <button type="button" mat-icon-button color="primary" (click)="onSelectedClick()"
               [disabled]="!getValue && !getValues" matTooltip="Selected" matTooltipPosition="left">
-        <i class="fa fa-2x fa-hand-pointer-o" aria-hidden="true"></i>
+        <mat-icon>offline_pin</mat-icon>
       </button>
       <button type="button" mat-icon-button color="warn" (click)="onCancelClick()"
               matTooltip="Cancel" matTooltipPosition="left">
-        <i class="fa fa-2x fa-close" aria-hidden="true"></i>
+        <mat-icon>clear</mat-icon>
       </button>
     </div>
   </div>

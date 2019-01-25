@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VipcoSageX3.Models.SageX3;
 using VipcoSageX3.Services;
+using VipcoSageX3.Services.ExcelExportServices;
 using VipcoSageX3.ViewModels;
 
 namespace VipcoSageX3.Controllers.SageX3
@@ -32,11 +33,13 @@ namespace VipcoSageX3.Controllers.SageX3
         private readonly IRepositorySageX3<Stock> repositoryStock;
         private readonly IRepositorySageX3<Stolot> repositoryStockLot;
         private readonly IHostingEnvironment hosting;
+        private readonly IHelperService helperService;
 
         public StockOnHandController(IRepositorySageX3<Itmmvt> repo,
             IRepositorySageX3<Stock> repoStock,
             IRepositorySageX3<Stolot> repoStockLot,
             IHostingEnvironment hosting,
+            IHelperService helperService,
             IMapper mapper, SageX3Context x3Context) : base(repo, mapper)
         {
             // Repoistory
@@ -44,11 +47,14 @@ namespace VipcoSageX3.Controllers.SageX3
             this.repositoryStockLot = repoStockLot;
             // Host
             this.hosting = hosting;
+            // Helper
+            this.helperService = helperService;
             // Context
             this.sageContext = x3Context;
         }
 
         #region PrivateMethod
+
         private async Task<List<StockOnHandViewModel>> GetData(ScrollViewModel Scroll)
         {
             #region Query
@@ -236,6 +242,7 @@ namespace VipcoSageX3.Controllers.SageX3
 
             return null;
         }
+
         private string ConvertHtmlToText(string Html)
         {
             var htmlDoc = new HtmlDocument();
@@ -257,6 +264,7 @@ namespace VipcoSageX3.Controllers.SageX3
             }
             return sb.ToString();
         }
+
         #endregion
 
         // POST: api/StockOnHand/GetScroll
@@ -279,6 +287,7 @@ namespace VipcoSageX3.Controllers.SageX3
             }
             return BadRequest(new { Error = Message });
         }
+
         // POST: api/StockOnHand/GetReport/
         [HttpPost("GetReport")]
         public async Task<IActionResult> GetReport([FromBody] ScrollViewModel Scroll)
@@ -314,8 +323,10 @@ namespace VipcoSageX3.Controllers.SageX3
                     //Adding the Rows
                     foreach (var item in MapDatas)
                     {
-                        item.ItemDesc = this.ConvertHtmlToText(item.ItemDescFull);
+                        item.ItemDesc = this.helperService.ConvertHtmlToText(item.ItemDescFull);
                         item.ItemDesc = item.ItemDesc.Replace("\r\n", "");
+                        item.ItemDesc = item.ItemDesc.Replace("\n", "");
+
                         if (item.StockLocations != null && item.StockLocations.Any())
                         {
                             foreach (var subitem in item.StockLocations)
@@ -350,25 +361,8 @@ namespace VipcoSageX3.Controllers.SageX3
                         }
                     }
 
-                    var templateFolder = this.hosting.WebRootPath + "/reports/";
-                    var fileExcel = templateFolder + $"StockOnHand_Report.xlsx";
-
-                    using (XLWorkbook wb = new XLWorkbook())
-                    {
-                        var wsFreeze = wb.Worksheets.Add(table, "StockOnHandReport");
-                        wsFreeze.Columns().AdjustToContents();
-                        wsFreeze.SheetView.FreezeRows(1);
-                        wb.SaveAs(fileExcel);
-                    }
-
-                    var memory = new MemoryStream();
-                    using (var stream = new FileStream(fileExcel, FileMode.Open))
-                    {
-                        await stream.CopyToAsync(memory);
-                    }
-                    memory.Position = 0;
-
-                    return File(memory, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Payment_Report.xlsx");
+                    return File(this.helperService.CreateExcelFile(table,"StockOnHand")
+                        , "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "export.xlsx");
                 }
             }
             catch (Exception ex)

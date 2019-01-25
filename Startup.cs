@@ -15,6 +15,10 @@ using VipcoSageX3.Helpers;
 using VipcoSageX3.Models.Machines;
 using VipcoSageX3.Models.SageX3;
 using VipcoSageX3.Services;
+using VipcoSageX3.Services.ExcelExportServices;
+using VipcoSageX3.Services.TaskServices;
+using VipcoSageX3.Services.EmailServices;
+
 
 namespace VipcoSageX3
 {
@@ -79,9 +83,10 @@ namespace VipcoSageX3
             //});
 
             // Add DI
-            services.AddScoped<HtmlDocumentService>();
-            services.AddScoped<ExcelWorkBookService>();
-            services.AddScoped<IHelperService, HelperService>();
+            services.AddExcelExport();
+            services.AddEmailSender();
+            services.AddTaskSchedule();
+
             services.AddScoped<IUserService, UserService>();
             // Change AddDbContextPool if EF Core 2.1
             services.AddDbContextPool<MachineContext>(option =>

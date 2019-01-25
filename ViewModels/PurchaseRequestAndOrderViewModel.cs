@@ -158,14 +158,20 @@ namespace VipcoSageX3.ViewModels
         /// PORDERQ.QTYPUU
         /// </summary>
         public double? PoQuantityPur { get; set; }
+        public string PoQuantityPurString => this.PoQuantityPur == null ? "-" : string.Format("{0:#,##0}", this.PoQuantityPur);
+
         /// <summary>
         /// PORDERQ.QTYSTU
         /// </summary>
         public double? PoQuantityStk { get; set; }
+        public string PoQuantityStkString => this.PoQuantityStk == null ? "-" : string.Format("{0:#,##0}", this.PoQuantityStk);
+
         /// <summary>
         /// PORDERQ.QTYWEU
         /// </summary>
         public double? PoQuantityWeight { get; set; }
+        public string PoQuantityWeightString => this.PoQuantityWeight == null ? "-" : string.Format("{0:#,##0}", this.PoQuantityWeight);
+
         /// <summary>
         /// CPTANALIN.CCE0 WHERE VCRNUM = POHNUM AND VCRLIN = POPLIN AND VCRSEQ = POQSEQ
         /// </summary>

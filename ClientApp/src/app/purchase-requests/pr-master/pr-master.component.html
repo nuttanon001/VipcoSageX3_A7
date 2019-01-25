@@ -59,7 +59,7 @@
   <div class="detail">
     <table *ngIf="!needReset" id="table1">
       <p-table [first]="first" [columns]="columns" [value]="datasource" [lazy]="true" (onLazyLoad)="loadDataLazy($event)"
-               [paginator]="true" [rows]="pageRow" [rowsPerPageOptions]="[15,25,50]"
+               [paginator]="true" [rows]="rowPage" [rowsPerPageOptions]="[15,25,50]"
                [totalRecords]="totalRecords" [loading]="loading" [scrollable]="true" [scrollHeight]="mobHeight"  [style]="{width:'98vw'}">
         <ng-template pTemplate="colgroup" let-columns>
           <colgroup>
@@ -76,9 +76,9 @@
             </th>
           </tr>
           <tr>
-            <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngStyle]="{'width.px':col.width}">
+            <th *ngFor="let col of columns" [pSortableColumn]="col.canSort ? col.field : ''" [ngStyle]="{'width.px':col.width}">
               {{col.header}}
-              <p-sortIcon *ngIf="col.type === 1" [field]="col.field"></p-sortIcon>
+              <p-sortIcon *ngIf="col.canSort" [field]="col.field"></p-sortIcon>
             </th>
           </tr>
         </ng-template>

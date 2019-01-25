@@ -1,4 +1,4 @@
-import { OnInit, OnDestroy, ViewContainerRef } from "@angular/core";
+import { OnInit, OnDestroy,AfterViewInit, ViewContainerRef, HostListener } from "@angular/core";
 import { FormBuilder, FormGroup, AbstractControl } from "@angular/forms";
 import { BaseRestService } from "./base-rest.service";
 import { DialogsService } from "../dialogs/shared/dialogs.service";
@@ -8,14 +8,19 @@ import { Scroll } from "./scroll.model";
 import { LazyLoadEvent } from "primeng/primeng";
 import { debounceTime, distinctUntilChanged, map,take } from "rxjs/operators";
 import { interval } from 'rxjs';
+import { User } from '../users/shared/user.model';
+import { debounce } from "./delay-func";
 
-export abstract class BaseScheduleComponent<Model,Service extends BaseRestService<Model>> implements OnInit, OnDestroy {
+
+export abstract class BaseScheduleComponent<Model, Service extends BaseRestService<Model>> implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     public service: Service,
     public fb: FormBuilder,
     public viewCon: ViewContainerRef,
     public serviceDialogs:DialogsService
-  ) { }
+  ) {
+    this.mobHeight = (window.innerHeight - this.sizeForm) + "px";
+  }
 
   //Parameter
   datasource: Array<Model>;
@@ -24,6 +29,7 @@ export abstract class BaseScheduleComponent<Model,Service extends BaseRestServic
   subscription: Subscription;
   columns: Array<MyPrimengColumn>;
   columnUppers: Array<MyPrimengColumn>;
+  currentUser: User;
   //TimeReload
   message: number = 0;
   count: number = 0;
@@ -34,9 +40,14 @@ export abstract class BaseScheduleComponent<Model,Service extends BaseRestServic
   rowPage: number = 15;
   first: number = 0;
   needReset: boolean = false;
+  mobHeight: any = "50px";
+  sizeForm: number = 220;
 
   ngOnInit() {
     this.buildForm();
+  }
+
+  ngAfterViewInit() {
   }
 
   // destroy
@@ -163,5 +174,14 @@ export abstract class BaseScheduleComponent<Model,Service extends BaseRestServic
 
     ///* save to file */
     //XLSX.writeFile(wb, "SheetJS.xlsx");
+  }
+
+  @HostListener('window:resize', ['$event'])
+  @debounce()
+  onResize(event) {
+    // console.log("innerWidth", event.target.innerWidth);
+    // console.log("innerHeight", event.target.innerHeight);
+
+    this.mobHeight = (event.target.innerHeight - this.sizeForm) + "px";
   }
 }

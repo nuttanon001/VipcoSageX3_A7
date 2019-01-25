@@ -115,6 +115,7 @@ export abstract class BaseRestService<Model>{
     // console.log(this.baseUrl + subAction);
 
     return this.http.post<ScrollData<Model>>(this.baseUrl + subAction, JSON.stringify(scroll), httpOptions)
+      .shareReplay()
       .pipe(catchError(this.handleError("Get models for scroll component", <ScrollData<Model>>{})));
   }
 

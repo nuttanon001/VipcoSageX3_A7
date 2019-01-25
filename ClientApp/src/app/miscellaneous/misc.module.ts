@@ -9,6 +9,8 @@ import { IssueTableComponent } from './issue-table/issue-table.component';
 import { JournalTableComponent } from './journal-table/journal-table.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CustomMaterialModule } from '../shared/customer-material.module';
+import { InvoiceSupBpComponent } from './invoice-sup-bp/invoice-sup-bp.component';
+import { Journal2Component } from './journal2/journal2.component';
 
 @NgModule({
   imports: [
@@ -21,7 +23,9 @@ import { CustomMaterialModule } from '../shared/customer-material.module';
     MiscCenterComponent,
     MiscMasterComponent,
     IssueTableComponent,
-    JournalTableComponent
+    JournalTableComponent,
+    InvoiceSupBpComponent,
+    Journal2Component
   ],
   providers: [
     MiscService

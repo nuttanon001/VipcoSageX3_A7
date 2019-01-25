@@ -34,8 +34,14 @@
 
 :host /deep/ .ui-widget {
   font-family: "Roboto", "Trebuchet MS", Arial, Helvetica, sans-serif;
-  /*font-size: 0.8em;*/
+  font-size: 0.8em;
 }
+
+:host /deep/ .ui-paginator .ui-dropdown .ui-dropdown-label {
+  font-family: "Roboto", "Trebuchet MS", Arial, Helvetica, sans-serif;
+  font-size: 0.8em;
+}
+
 
 .detail {
   max-height: 90%;

@@ -31,11 +31,9 @@ export class StockOnhandMasterComponent extends BaseScheduleComponent<StockOnhan
   ) {
     super(service, fb, viewCon, serviceDialogs);
     // 100 for bar | 200 for titil and filter
-    this.mobHeight = (window.screen.height - 340) + "px";
   }
 
   // Parameter
-  mobHeight: any;
 
   ngOnInit(): void {
     this.buildForm();
@@ -61,31 +59,26 @@ export class StockOnhandMasterComponent extends BaseScheduleComponent<StockOnhan
         }
 
         // new Column Array
-        let width100: number = 100;
-        let width150: number = 150;
-        let width250: number = 250;
-        let width350: number = 350;
 
         this.columns = new Array;
         this.columns = [
-          { field: 'ItemCode', header: 'Product', width: 175, type: ColumnType.PurchaseOrder },
-          { field: 'ItemDescFull', header: 'Description', width: width350, type: ColumnType.PurchaseOrder },
-          //{ field: 'Uom', header: 'Uom', width: 75, type: ColumnType.PurchaseOrder },
-          { field: 'Category', header: 'Category', width: width100, type: ColumnType.PurchaseOrder},
-          { field: 'CategoryDesc', header: 'Category Desc', width: width150, type: ColumnType.PurchaseOrder},
+          { field: 'ItemCode', header: 'Product', canSort:true , width: 175, type: ColumnType.PurchaseOrder },
+          { field: 'ItemDescFull', header: 'Description', canSort: true,  width: 350, type: ColumnType.PurchaseOrder },
+          { field: 'Category', header: 'Category', canSort: true,  width: 100, type: ColumnType.PurchaseOrder},
+          { field: 'CategoryDesc', header: 'Category Desc', canSort: true,  width: 150, type: ColumnType.PurchaseOrder},
 
           { field: 'StockLocations', header: '', width: 5, type: ColumnType.PurchaseReceipt },
           { field: 'QuantityString', header: 'StockByLocation', width: 155, type: ColumnType.Hidder },
           { field: 'LocationCode', header: 'Location', width: 105, type: ColumnType.Hidder },
-          { field: 'Uom', header: 'Uom', width: 80, type: ColumnType.Hidder },
+          { field: 'Uom', header: 'Uom', width: 80, canSort: true,  type: ColumnType.Hidder },
           { field: 'Project', header: 'JobNo', width: 125, type: ColumnType.Hidder },
           { field: 'LotNo', header: 'LotNo/HeatNo', width: 155, type: ColumnType.Hidder },
           { field: 'HeatNo', header: 'HeatNo', width: 125, type: ColumnType.Hidder },
           { field: 'Origin', header: 'Origin', width: 125, type: ColumnType.Hidder },
           { field: 'ExpDateString', header: 'Exp.Date', width: 140, type: ColumnType.Hidder },
 
-          { field: 'InternelStockString', header: 'TotalStock', width: 110, type: ColumnType.PurchaseOrder },
-          { field: 'OnOrderString', header: 'OnOrder', width: 95, type: ColumnType.PurchaseOrder },
+          { field: 'InternelStockString', header: 'TotalStock', canSort: true,  width: 110, type: ColumnType.PurchaseOrder },
+          { field: 'OnOrderString', header: 'OnOrder', canSort: true, width: 110, type: ColumnType.PurchaseOrder },
 
           // { field: 'LocationStock', header: 'Location', width: 125, },
           // { field: 'InternelStockString', header: 'StockByLocation', width: 250, },
@@ -136,7 +129,7 @@ export class StockOnhandMasterComponent extends BaseScheduleComponent<StockOnhan
   // get report data
   onReport(): void {
     if (this.reportForm) {
-      let scorll = this.reportForm.getRawValue() as Scroll;
+      const scorll = this.reportForm.getRawValue() as Scroll;
 
       // debug here
       // console.log(JSON.stringify(scorll));
@@ -147,6 +140,8 @@ export class StockOnhandMasterComponent extends BaseScheduleComponent<StockOnhan
       }
 
       this.loading = true;
+      scorll.Take = this.totalRecords;
+
       this.service.getXlsx(scorll).subscribe(data => {
         //console.log(data);
         this.loading = false;

@@ -31,15 +31,18 @@ export class PaymentMasterComponent extends BaseScheduleComponent<Payment,Paymen
   ) {
     super(service, fb, viewCon, serviceDialogs);
     // 100 for bar | 200 for titil and filter
-    this.mobHeight = (window.screen.height - 340) + "px";
+
+    this.serviceAuth.currentUser.subscribe(x => {
+      // console.log(JSON.stringify(x));
+      this.currentUser = x;
+    });
   }
   // Parameter
   failLogin: boolean = false;
-  mobHeight: any;
 
   ngOnInit(): void {
     this.buildForm();
-    if (!this.serviceAuth.getAuth || this.serviceAuth.getAuth.LevelUser < 2) {
+    if (!this.currentUser || this.currentUser.LevelUser < 2) {
       this.serviceDialogs.error("Waining Message", "Access is restricted. please contact administrator !!!", this.viewCon).
         subscribe(() => this.router.navigate(["login"]));
     } else {
@@ -140,24 +143,20 @@ export class PaymentMasterComponent extends BaseScheduleComponent<Payment,Paymen
   // get report data
   onReportPayment(): void {
     if (this.reportForm) {
-      this.loading = true;
       const scorll = this.reportForm.getRawValue() as Scroll;
+
+      if (!scorll.WhereSupplier && !scorll.WhereBanks && !scorll.Filter && !scorll.SDate && !scorll.EDate) {
+        this.serviceDialogs.error("Error Message", `Please filter some condition befor export.`, this.viewCon);
+        return;
+      }
+
+      this.loading = true;
+      scorll.Skip = 0;
+      scorll.Take = this.totalRecords;
+
       this.service.getXlsx(scorll).subscribe(data => {
-        // console.log(data);
         this.loading = false;
-      });
-      //this.service.getPaymentReport(scorll)
-      //  .subscribe(data => {
-      //    if (data) {
-      //      // console.log(data);
-      //      let link: any = document.createElement("a");
-      //      link.href = URL.createObjectURL(data);
-      //      link.download = "ReportPayment.xlsx";
-      //      link.click();
-      //    }
-      //    // get paper for over time
-      //    // this.onGetPaperTaskMachineOverTime(value);
-      //  });
+      }, () => this.loading = false, () => this.loading = false);
     }
   }
 }

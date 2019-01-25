@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewContainerRef } from '@angular/core';
+import { Component, AfterViewInit, ViewContainerRef, HostListener } from '@angular/core';
 import { ColumnType } from '../../shared/column.model';
 import { BaseScheduleComponent } from '../../shared/base-schedule.component';
 import { StockMovement } from '../shared/stock-movement.model';
@@ -16,7 +16,8 @@ import { Category } from '../../dimension-datas/shared/category.model';
   templateUrl: './stock-movement-master.component.html',
   styleUrls: ['./stock-movement-master.component.scss']
 })
-export class StockMovementMasterComponent extends BaseScheduleComponent<StockMovement, StockMovementsService> {
+export class StockMovementMasterComponent extends BaseScheduleComponent<StockMovement, StockMovementsService> implements AfterViewInit
+ {
   constructor(
     service: StockMovementsService,
     fb: FormBuilder,
@@ -27,11 +28,7 @@ export class StockMovementMasterComponent extends BaseScheduleComponent<StockMov
   ) {
     super(service, fb, viewCon, serviceDialogs);
     // 100 for bar | 200 for titil and filter
-    this.mobHeight = (window.screen.height - 340) + "px";
   }
-
-  //Parameter
-  mobHeight: any;
 
   ngOnInit(): void {
     this.buildForm();
@@ -57,21 +54,17 @@ export class StockMovementMasterComponent extends BaseScheduleComponent<StockMov
         }
 
         // new Column Array
-        let width100: number = 100;
-        let width150: number = 150;
-        let width250: number = 250;
-        let width350: number = 350;
 
         this.columns = new Array;
         this.columns = [
-          { field: 'ItemCode', header: 'Product', width: 185, type: ColumnType.PurchaseOrder },
-          { field: 'ItemDescFull', header: 'Description', width: width350, type: ColumnType.PurchaseOrder },
-          { field: 'Category', header: 'Category', width: width100, type: ColumnType.PurchaseOrder },
-          { field: 'CategoryDesc', header: 'Category Desc', width: 200, type: ColumnType.PurchaseOrder },
-          { field: 'Uom', header: 'Uom', width: 75, type: ColumnType.PurchaseOrder },
+          { field: 'ItemCode', header: 'Product',canSort:true , width: 185, type: ColumnType.PurchaseOrder },
+          { field: 'ItemDescFull', header: 'Description', canSort: true, width: 350, type: ColumnType.PurchaseOrder },
+          { field: 'Category', canSort: true, header: 'Category', width: 115, type: ColumnType.PurchaseOrder },
+          { field: 'CategoryDesc', canSort: true, header: 'Category Desc', width: 200, type: ColumnType.PurchaseOrder },
+          { field: 'Uom', header: 'Uom', canSort: true, width: 85, type: ColumnType.PurchaseOrder },
 
           { field: 'StockMovement2s', header: '', width: 10, type: ColumnType.PurchaseReceipt },
-          { field: 'DocNo', header: 'DocNo', width: width150, type: ColumnType.Hidder },
+          { field: 'DocNo', header: 'DocNo', width: 150, type: ColumnType.Hidder },
           { field: 'MovementType', header: 'Type', width: 125, type: ColumnType.Hidder },
           { field: 'MovementDateString', header: 'Date', width: 110, type: ColumnType.Hidder },
           { field: 'QuantityInString', header: 'MoveIn', width: 85, type: ColumnType.Hidder },
@@ -129,10 +122,17 @@ export class StockMovementMasterComponent extends BaseScheduleComponent<StockMov
     if (this.reportForm) {
       this.loading = true;
       const scorll = this.reportForm.getRawValue() as Scroll;
+
+      if (!scorll.WhereBanks && !scorll.Filter) {
+        this.serviceDialogs.error("Error Message", `Please select item category or filter befor export.`, this.viewCon);
+        return;
+      }
+
+      scorll.Take = this.totalRecords;
       this.service.getXlsx(scorll).subscribe(data => {
         // console.log(data);
         this.loading = false;
-      });
+      },() => this.loading = false,() => this.loading = false);
     }
   }
 

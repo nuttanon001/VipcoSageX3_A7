@@ -15,6 +15,8 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { LazyLoadEvent } from 'primeng/primeng';
 import { MyPrimengColumn, ColumnType } from '../../shared/column.model';
 import { DialogsService } from '../../dialogs/shared/dialogs.service';
+import { extend } from 'webdriver-js-extender';
+import { BaseScheduleComponent } from 'src/app/shared/base-schedule.component';
 //3rdParty
 
 @Component({
@@ -22,47 +24,20 @@ import { DialogsService } from '../../dialogs/shared/dialogs.service';
   templateUrl: './pr-master.component.html',
   styleUrls: ['./pr-master.component.scss']
 })
-export class PrMasterComponent implements OnInit, OnDestroy {
+export class PrMasterComponent extends BaseScheduleComponent<PrAndPo,PrService> {
   constructor(
-    private service: PrService,
-    private fb: FormBuilder,
-    private viewCon: ViewContainerRef,
-    private serviceDialogs: DialogsService
+    service: PrService,
+    fb: FormBuilder,
+    viewCon: ViewContainerRef,
+    serviceDialogs: DialogsService
   ) {
-    // 100 for bar | 200 for titil and filter
-    this.mobHeight = (window.screen.height - 350) + "px";
+    
+    super(service, fb, viewCon, serviceDialogs);
+    this.sizeForm = 250;
+    // console.log(this.mobHeight);
   }
 
   //Parameter
-  mobHeight: any;
-  datasource: Array<PrAndPo>;
-  totalRecords: number;
-  loading: boolean;
-  subscription: Subscription;
-  columns: Array<MyPrimengColumn>;
-  columnUppers: Array<MyPrimengColumn>;
-  //TimeReload
-  message: number = 0;
-  count: number = 0;
-  time: number = 300;
-  // ScrollData
-  scroll: Scroll;
-  reportForm: FormGroup;
-  first: number = 0;
-  needReset: boolean = false;
-  pageRow: number = 15;
-
-  ngOnInit() {
-    this.buildForm();
-  }
-
-  // destroy
-  ngOnDestroy(): void {
-    if (this.subscription) {
-      // prevent memory leak when component destroyed
-      this.subscription.unsubscribe();
-    }
-  }
 
   // build form
   buildForm(): void {
@@ -102,14 +77,6 @@ export class PrMasterComponent implements OnInit, OnDestroy {
     }
   }
 
-  // on value change
-  onValueChanged(data?: any): void {
-    if (!this.reportForm) { return; }
-    this.scroll = this.reportForm.value;
-    this.loading = true;
-    this.onGetData(this.scroll);
-  }
-
   // get request data
   onGetData(schedule: Scroll): void {
     this.service.getAllWithScroll(schedule)
@@ -132,26 +99,26 @@ export class PrMasterComponent implements OnInit, OnDestroy {
 
         this.columns = new Array;
         this.columns = [
-          { field: 'PrNumber', header: 'PrNo.', width: width150, type: ColumnType.PurchaseRequest },
-          { field: 'Project', header: 'JobNo.', width: width150, type: ColumnType.PurchaseRequest },
-          { field: 'PRDateString', header: 'PrDate', width: width150, type: ColumnType.PurchaseRequest },
-          { field: 'RequestDateString', header: 'Request', width: width150, type: ColumnType.PurchaseRequest },
+          { field: 'PrNumber', header: 'PrNo.', canSort:true, width: width150, type: ColumnType.PurchaseRequest },
+          { field: 'Project', header: 'JobNo.', canSort: true, width: width150, type: ColumnType.PurchaseRequest },
+          { field: 'PRDateString', header: 'PrDate', canSort: true, width: width150, type: ColumnType.PurchaseRequest },
+          { field: 'RequestDateString', header: 'Request', canSort: true, width: width150, type: ColumnType.PurchaseRequest },
           { field: 'ItemCode', header: 'Item-Code', width: width250, type: ColumnType.PurchaseRequest },
-          { field: 'ItemName', header: 'Item-Name', width: width350, type: ColumnType.PurchaseRequest },
+          { field: 'ItemName', header: 'Item-Name', canSort: true, width: width350, type: ColumnType.PurchaseRequest },
           { field: 'PurUom', header: 'Uom', width: width100, type: ColumnType.PurchaseRequest },
-          { field: 'Branch', header: 'Branch', width: width150, type: ColumnType.PurchaseRequest },
-          { field: 'WorkItemName', header: 'BomLv', width: width250, type: ColumnType.PurchaseRequest },
-          { field: 'WorkGroupName', header: 'WorkGroup', width: width250, type: ColumnType.PurchaseRequest },
+          { field: 'Branch', header: 'Branch', canSort: true, width: width150, type: ColumnType.PurchaseRequest },
+          { field: 'WorkItemName', header: 'BomLv', canSort: true, width: width250, type: ColumnType.PurchaseRequest },
+          { field: 'WorkGroupName', header: 'WorkGroup', canSort: true, width: width250, type: ColumnType.PurchaseRequest },
           { field: 'QuantityPur', header: 'Qty.', width: width100, type: ColumnType.PurchaseRequest },
           { field: 'PrWeightString', header: 'Weight', width: width100, type: ColumnType.PurchaseRequest },
           
           { field: 'PrCloseStatus', header: 'PrClose', width: 110, type: ColumnType.PurchaseRequest },
-          { field: 'CreateBy', header: 'Create', width: width100, type: ColumnType.PurchaseRequest },
+          { field: 'CreateBy', header: 'Create', canSort: true, width: width100, type: ColumnType.PurchaseRequest },
 
-          { field: 'PoNumber', header: 'PoNo', width: width150, type: ColumnType.PurchaseOrder },
+          { field: 'PoNumber', header: 'PoNo', canSort: true, width: width150, type: ColumnType.PurchaseOrder },
           { field: 'PoProject', header: 'JobNo', width: width150, type: ColumnType.PurchaseOrder },
-          { field: 'PoDateString', header: 'PoDate', width: width100, type: ColumnType.PurchaseOrder },
-          { field: 'DueDateString', header: 'DueDate', width: width100, type: ColumnType.PurchaseOrder },
+          { field: 'PoDateString', header: 'PoDate', canSort: true, width: width100, type: ColumnType.PurchaseOrder },
+          { field: 'DueDateString', header: 'DueDate', canSort: true, width: width100, type: ColumnType.PurchaseOrder },
           { field: 'PoQuantityPur', header: 'Qty', width: width100, type: ColumnType.PurchaseOrder },
           { field: 'PoQuantityWeight', header: 'Weight', width: width150, type: ColumnType.PurchaseOrder },
           { field: 'PoPurUom', header: 'Uom', width: width100, type: ColumnType.PurchaseOrder },
@@ -211,58 +178,6 @@ export class PrMasterComponent implements OnInit, OnDestroy {
       }, () => this.loading = false);
   }
 
-  // load Data Lazy
-  loadDataLazy(event: LazyLoadEvent): void {
-    // in a real application, make a remote request to load data using state metadata from event
-    // event.first = First row offset
-    // event.rows = Number of rows per page
-    // event.sortField = Field name to sort with
-    // event.sortOrder = Sort order as number, 1 for asc and -1 for dec
-    // filters: FilterMetadata object having field as key and filter value, filter matchMode as value
-
-    this.pageRow = (event.rows || 15);
-    // imitate db connection over a network
-    this.reportForm.patchValue({
-      Skip: event.first,
-      Take: (event.rows || 15),
-      SortField: event.sortField,
-      SortOrder: event.sortOrder,
-    });
-  }
-
-  // reset
-  resetFilter(): void {
-    this.datasource = new Array;
-    this.scroll = undefined;
-    this.loading = true;
-    this.buildForm();
-    this.onGetData(this.scroll);
-  }
-
-  // reload data
-  reloadData(): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-
-    const result = interval(1000).pipe(
-      take(this.time),
-      map(res => {
-
-        // console.log(res);
-
-        this.message = this.time - res;
-        this.count = (res / this.time) * 100;
-        if (res === this.time) {
-          if (this.reportForm.value) {
-            this.onGetData(this.reportForm.value);
-          }
-        }
-      })
-    );
-
-    this.subscription = result.subscribe();
-  }
 
   filterItemsOfType() {
     return this.columns.filter(x => x.type !== ColumnType.Hidder);
@@ -302,16 +217,6 @@ export class PrMasterComponent implements OnInit, OnDestroy {
     }
   }
 
-  exportData(): void {
-    //const Table = document.getElementById('table1');
-    //const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(Table);
-    ///* generate workbook and add the worksheet */
-    //const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    //XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    ///* save to file */
-    //XLSX.writeFile(wb, "SheetJS.xlsx");
-  }
-
   // get report data
   onReport(): void {
     if (this.reportForm) {
@@ -332,7 +237,7 @@ export class PrMasterComponent implements OnInit, OnDestroy {
       this.service.getXlsx(scorll).subscribe(data => {
         // console.log(data);
         this.loading = false;
-      });
+      },() => this.loading = false,() => this.loading = false);
     }
   }
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace VipcoSageX3.Services
+namespace VipcoSageX3.Services.ExcelExportServices
 {
     public class HtmlDocumentService
     {

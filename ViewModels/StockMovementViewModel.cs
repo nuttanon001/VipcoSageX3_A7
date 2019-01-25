@@ -35,9 +35,11 @@ namespace VipcoSageX3.ViewModels
         /// STOJOU.AMTVAL_0
         /// </summary>
         public double? Amount { get; set; }
- 
+        /// <summary>
+        /// ITMMASTER.PCU_0 OR ITMMASTER.STU_0
+        /// </summary>
         public string Uom { get; set; }
 
-        public ICollection<StockMovement2ViewModel> StockMovement2s { get; set; } = new List<StockMovement2ViewModel>();
+        public List<StockMovement2ViewModel> StockMovement2s { get; set; } = new List<StockMovement2ViewModel>();
     }
 }

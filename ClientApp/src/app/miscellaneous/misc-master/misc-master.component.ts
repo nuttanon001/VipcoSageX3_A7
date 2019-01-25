@@ -27,16 +27,18 @@ export class MiscMasterComponent extends BaseScheduleComponent<MiscAccount, Misc
   ) {
     super(service, fb, viewCon, serviceDialogs);
     // 100 for bar | 200 for titil and filter
-    this.mobHeight = (window.screen.height - 330) + "px";
+    this.serviceAuth.currentUser.subscribe(x => {
+      // console.log(JSON.stringify(x));
+      this.currentUser = x;
+    });
   }
 
   // Parameter
   failLogin: boolean = false;
-  mobHeight: any;
 
   ngOnInit(): void {
     this.buildForm();
-    if (!this.serviceAuth.getAuth || this.serviceAuth.getAuth.LevelUser < 2) {
+    if (!this.currentUser || this.currentUser.LevelUser < 2) {
       this.serviceDialogs.error("Waining Message", "Access is restricted. please contact administrator !!!", this.viewCon).
         subscribe(() => this.router.navigate(["login"]));
     } else {
@@ -160,7 +162,7 @@ export class MiscMasterComponent extends BaseScheduleComponent<MiscAccount, Misc
       this.service.getXlsx(scorll).subscribe(data => {
         // console.log(data);
         this.loading = false;
-      });
+      },() => this.loading = false,() => this.loading = false);
     }
   }
 

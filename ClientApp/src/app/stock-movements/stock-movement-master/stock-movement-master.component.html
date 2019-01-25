@@ -41,10 +41,10 @@
         </ng-template>
         <ng-template pTemplate="header" let-columns>
           <tr>
-            <th *ngFor="let col of columns" [pSortableColumn]="col.field" [ngStyle]="{'width.px':col.width}"
+            <th *ngFor="let col of columns" [pSortableColumn]="col.canSort ? col.field : ''" [ngStyle]="{'width.px':col.width}"
                 class="PrHeader">
               {{col.header}}
-              <p-sortIcon *ngIf="col.type === 2" [field]="col.field"></p-sortIcon>
+              <p-sortIcon *ngIf="col.canSort" [field]="col.field"></p-sortIcon>
             </th>
           </tr>
         </ng-template>

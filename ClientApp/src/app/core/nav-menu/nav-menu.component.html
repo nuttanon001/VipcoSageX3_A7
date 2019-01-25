@@ -56,6 +56,16 @@
               <mat-icon>card_membership</mat-icon>
               <span>&nbsp;Issue & Journal &nbsp;</span>
             </button>
+            <button mat-menu-item [routerLink]="['/mics-account/invoices']" routerLinkActive="active">
+              <!--matBadge-->
+              <mat-icon>library_books</mat-icon>
+              <span>&nbsp;Supplier BP Invoice&nbsp;</span>
+            </button>
+            <button mat-menu-item [routerLink]="['/mics-account/journal2']" routerLinkActive="active">
+              <!--matBadge-->
+              <mat-icon>gesture</mat-icon>
+              <span>&nbsp;Journal Entry&nbsp;</span>
+            </button>
           </div>
         </mat-menu>
       </li>
