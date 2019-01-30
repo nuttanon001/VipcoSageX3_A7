@@ -14,11 +14,14 @@ namespace VipcoSageX3.Models.SageX3Extends
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ReceiptExtend>().ToTable("ReceiptExtend");
-            modelBuilder.Entity<ScheduleEmailAddress>().ToTable("ScheduleEmailAddress");
+            modelBuilder.Entity<TaskStatusDetail>().ToTable("TaskStatusDetail");
+            modelBuilder.Entity<TaskStatusMaster>().ToTable("TaskStatusMaster");
         }
 
         // Dbset
         public DbSet<ReceiptExtend> ReceiptExtends { get; set; }
-        public DbSet<ScheduleEmailAddress> ScheduleEmailAddress { get; set; }
+        public DbSet<TaskStatusDetail> TaskStatusDetails { get; set; }
+        public DbSet<TaskStatusMaster> TaskStatusMasters { get; set; }
+
     }
 }

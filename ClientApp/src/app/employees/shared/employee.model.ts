@@ -1,4 +1,4 @@
-import { BaseModel } from "../../shared/base-model.model";
+import { BaseModel } from 'src/app/shared2/basemode/base-model.model';
 
 export interface Employee extends BaseModel {
   EmpCode: string;

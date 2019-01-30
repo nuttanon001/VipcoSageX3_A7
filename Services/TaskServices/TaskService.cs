@@ -21,7 +21,6 @@ namespace VipcoSageX3.Services.TaskServices
         public IServiceProvider Services { get; }
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            // Console.WriteLine($"name:{name} , poo:{string.Join(",",poo)}");
             _timer = new Timer(DoWork, null, TimeSpan.Zero,TimeSpan.FromHours(1));
 
             return Task.CompletedTask;
@@ -35,7 +34,6 @@ namespace VipcoSageX3.Services.TaskServices
      
                 using (var scope = this.Services.CreateScope())
                 {
-                    // var repo = scope.ServiceProvider.GetRequiredService<IRepositoryDapperSageX3<PurchaseReceiptViewModel>>();
                     var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IEmailSender>();
                     await scopedProcessingService.SendMail(new ViewModels.EmailViewModel()
                     {
@@ -56,6 +54,8 @@ namespace VipcoSageX3.Services.TaskServices
             // throw new System.NotImplementedException();
             _logger.LogInformation($"Timed Background Service is stopping. at {DateTime.Now}.");
             _timer?.Change(Timeout.Infinite, 0);
+            // Dispose
+            this.Dispose();
             return Task.CompletedTask;
         }
 

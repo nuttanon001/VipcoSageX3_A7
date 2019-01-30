@@ -1,0 +1,30 @@
+<div *ngIf="InfoValue;else elseBlock">
+  <mat-horizontal-stepper [linear]="true" #stepper="matHorizontalStepper">
+    <mat-step>
+      <ng-template matStepLabel>
+        <strong><b>Management task schedule for sender email information.</b></strong>
+      </ng-template>
+      <ng-container *ngIf="regConfig">
+        <dynamic-form [fields]="regConfig" (submit)="submitDynamicForm($event)">
+        </dynamic-form>
+      </ng-container>
+      <hr />
+      <app-task-status-detail-table [dataRows]="InfoValue.TaskStatusDetails" (returnSelectedWith)="OnDetailAction($event)"
+                                    [readOnly]="denySave">
+      </app-task-status-detail-table>
+    </mat-step>
+    <!--<mat-step>
+      <ng-template matStepLabel>
+        <strong><b>Email(s) list Information</b></strong>
+      </ng-template>
+      <app-task-status-detail-table [dataRows]="InfoValue.TaskStatusDetails" (returnSelectedWith)="OnDetailAction($event)"
+                                    [readOnly]="denySave">
+      </app-task-status-detail-table>
+    </mat-step>-->
+  </mat-horizontal-stepper>
+</div>
+
+<ng-template #elseBlock>
+  <mat-progress-bar mode="indeterminate" style="margin-top:50px;"></mat-progress-bar>
+  Waiting... for loading
+</ng-template>

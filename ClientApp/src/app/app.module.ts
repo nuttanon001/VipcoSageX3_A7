@@ -72,6 +72,11 @@ import { ErrorInterceptorService } from './core/auth/error-interceptor.service';
         canActivate: [AuthGuard]
       },
       {
+        path: "task-status",
+        loadChildren: "./task-status/task-status.module#TaskStatusModule",
+        canActivate: [AuthGuard]
+      },
+      {
         path: "mics-account",
         loadChildren: "./miscellaneous/misc.module#MiscModule",
         canActivate: [AuthGuard]

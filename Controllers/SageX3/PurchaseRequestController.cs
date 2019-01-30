@@ -426,61 +426,6 @@ namespace VipcoSageX3.Controllers.SageX3
             return MapDatas;
         }
 
-        private async Task<List<PurchaseRequestAndOrderViewModel>> GetData2(ScrollViewModel scroll, bool option = false)
-        {
-            if (scroll != null)
-            {
-                var dbData = await this.repositoryPrAndPo.GetPurchaseRequestAndOrders(scroll);
-                scroll.TotalRow = 999;
-
-                foreach (var item in dbData)
-                {
-                    item.ToDate = DateTime.Today.AddDays(-2);
-                    if (item.ItemName.StartsWith("{\\rtf1") && !option)
-                        item.ItemName = Rtf.ToHtml(item.ItemName);
-
-                    //    var ReciptionLine = await (from prc in this.sageContext.Preceiptd
-                    //                               join sto in this.sageContext.Stojou on
-                    //                                   new { key1 = prc.Pthnum0, key2 = prc.Ptdlin0 } equals
-                    //                                   new { key1 = sto.Vcrnum0, key2 = sto.Vcrlin0 } into new_sto
-                    //                               from all1 in new_sto.DefaultIfEmpty()
-                    //                               where prc.Pohnum0 == item.PoNumber &&
-                    //                                     prc.Poplin0 == item.PoLine &&
-                    //                                     prc.Poqseq0 == item.PoSequence &&
-                    //                                     ((all1.Vcrtypreg0 == 0 && all1.Regflg0 == 1) ||
-                    //                                     (all1.Vcrtypreg0 == 17 && all1.Regflg0 == 1))
-                    //                               select new
-                    //                               {
-                    //                                   preciptD = prc,
-                    //                                   stock = all1,
-                    //                               }).ToListAsync();
-                    //    if (ReciptionLine.Any())
-                    //    {
-                    //        foreach (var itemRc in ReciptionLine)
-                    //        {
-                    //            var RcMapData = this.mapper.Map<Preceiptd, PurchaseReceiptViewModel>(itemRc.preciptD);
-                    //            RcMapData.HeatNumber = itemRc?.stock?.Lot0 ?? "";
-                    //            RcMapData.HeatNumber += itemRc?.stock?.Slo0 ?? "";
-                    //            var RcDim = await this.repositoryDimLink.GetFirstOrDefaultAsync(x => x, x => x.Vcrnum0 == itemRc.preciptD.Pthnum0 && x.Vcrlin0 == itemRc.preciptD.Ptdlin0);
-                    //            if (RcDim != null)
-                    //            {
-                    //                RcMapData.RcBranch = RcDim.Cce0;
-                    //                RcMapData.RcWorkItem = RcDim.Cce1;
-                    //                RcMapData.RcProject = RcDim.Cce2;
-                    //                RcMapData.RcWorkGroup = RcDim.Cce3;
-                    //            }
-                    //            // Add Rc to mapData
-                    //            item.PurchaseReceipts.Add(RcMapData);
-                    //        }
-                    //    }
-                    //    else
-                    //        item.DeadLine = item.DueDate != null ? item.ToDate.Date > item.DueDate.Value.Date : false;
-                }
-
-                return dbData;
-            }
-            return null;
-        }
 
         private async Task<List<PurchaseRequestAndOrderViewModel>> GetData3(ScrollViewModel scroll)
         {
@@ -511,13 +456,13 @@ namespace VipcoSageX3.Controllers.SageX3
                 }
 
                 if (!string.IsNullOrEmpty(scroll.WhereBranch))
-                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"DIM.CCE_0 = '{scroll.WhereProject}'";
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"DIM.CCE_0 = '{scroll.WhereBranch}'";
 
                 if (!string.IsNullOrEmpty(scroll.WhereWorkGroup))
-                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"DIM.CCE_3 = '{scroll.WhereProject}'";
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"DIM.CCE_3 = '{scroll.WhereWorkGroup}'";
 
                 if (!string.IsNullOrEmpty(scroll.WhereWorkItem))
-                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"DIM.CCE_1 = '{scroll.WhereProject}'";
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"DIM.CCE_1 = '{scroll.WhereWorkItem}'";
 
                 if (!string.IsNullOrEmpty(scroll.WhereProject))
                     sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"DIM.CCE_2 = '{scroll.WhereProject}'";

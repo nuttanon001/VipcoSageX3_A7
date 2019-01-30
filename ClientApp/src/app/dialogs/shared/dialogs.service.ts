@@ -23,6 +23,8 @@ import { Supplier } from "../../dimension-datas/shared/supplier.model";
 import { SupplierDialogComponent } from "../supplier-dialog/supplier-dialog.component";
 import { CategoryDialogComponent } from "../category-dialog/category-dialog.component";
 import { Category } from "../../dimension-datas/shared/category.model";
+import { DialogInfo } from 'src/app/shared2/basemode/dialog-info.model';
+import { EmployeeDialogComponent } from '../employee-dialog/employee-dialog.component';
 
 @Injectable()
 export class DialogsService {
@@ -199,4 +201,23 @@ export class DialogsService {
     dialogRef = this.dialog.open(SupplierDialogComponent, config);
     return dialogRef.afterClosed();
   }
+
+  /**
+  * @param viewContainerRef
+  * @param data = info: Medicine
+  */
+  public dialogSelectEmployee(viewContainerRef: ViewContainerRef, data: DialogInfo<Employee>): Observable<Employee | Array<Employee>> {
+    let dialogRef: MatDialogRef<EmployeeDialogComponent>;
+    let config: MatDialogConfig = new MatDialogConfig();
+
+    // config
+    config.viewContainerRef = viewContainerRef;
+    config.data = data;
+    config.hasBackdrop = true;
+
+    // open dialog
+    dialogRef = this.dialog.open(EmployeeDialogComponent, config);
+    return dialogRef.afterClosed();
+  }
+
 }

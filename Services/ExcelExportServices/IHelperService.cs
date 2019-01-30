@@ -11,7 +11,7 @@ namespace VipcoSageX3.Services.ExcelExportServices
     public interface IHelperService
     {
         string ConvertHtmlToText(string HtmlCode);
-
+        TEntity AddHourMethod<TEntity>(TEntity entity);
         MemoryStream CreateExcelFile(DataTable table, string sheetName);
 
         MemoryStream CreateExcelFileMuiltSheets(List<MuiltSheetViewModel> muiltSheets);

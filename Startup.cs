@@ -18,7 +18,7 @@ using VipcoSageX3.Services;
 using VipcoSageX3.Services.ExcelExportServices;
 using VipcoSageX3.Services.TaskServices;
 using VipcoSageX3.Services.EmailServices;
-
+using VipcoSageX3.Models.SageX3Extends;
 
 namespace VipcoSageX3
 {
@@ -91,11 +91,14 @@ namespace VipcoSageX3
             // Change AddDbContextPool if EF Core 2.1
             services.AddDbContextPool<MachineContext>(option =>
                 option.UseSqlServer(Configuration.GetConnectionString("MachineConnection")))
+                .AddDbContextPool<SageX3ExtendContext>(option => 
+                option.UseSqlServer(Configuration.GetConnectionString("SageX3ExtendsConnection")))
                 .AddDbContextPool<SageX3Context>(option =>
                 option.UseSqlServer(Configuration.GetConnectionString("SageX3Connection"), sqlServerOptions => sqlServerOptions.CommandTimeout(90)));
             // Add Repositoy
             services.AddTransient(typeof(IRepositorySageX3<>), typeof(RepositorySageX3<>))
                     .AddTransient(typeof(IRepositoryMachine<>), typeof(RepositoryMachine<>))
+                    .AddTransient(typeof(IRepositorySageX3Extend<>),typeof(RepositorySageX3Extend<>))
                     .AddTransient(typeof(IRepositoryDapperSageX3<>), typeof(RepositoryDapperSageX3<>));
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -124,7 +127,7 @@ namespace VipcoSageX3
             // Shows UseCors with named policy.
             app.UseCors("AllowAllOrigins");
             app.UseAuthentication();
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
             // Customer Middleware

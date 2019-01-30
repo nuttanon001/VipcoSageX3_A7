@@ -9,7 +9,11 @@ import "hammerjs";
 import { DialogsService } from "./shared/dialogs.service";
 // modules
 import { CustomMaterialModule } from "../shared/customer-material.module";
+import { CustomMaterialModule as Alias } from "../shared2/customer-material.module";
+
 import { SharedModule } from "../shared/shared.module";
+import { SharedModule as Alias2 } from "../shared2/shared.module";
+
 // components
 import { ErrorDialog } from "./error-dialog/error-dialog.component";
 import { ContextDialog } from "./context-dialog/context-dialog.component";
@@ -26,6 +30,8 @@ import { SupplierTableDailogComponent } from './supplier-dialog/supplier-table-d
 import { BankTableDialogComponent } from './bank-dialog/bank-table-dialog/bank-table-dialog.component';
 import { CategoryDialogComponent } from './category-dialog/category-dialog.component';
 import { CategoryTableDialogComponent } from './category-dialog/category-table-dialog/category-table-dialog.component';
+import { EmployeeDialogComponent } from './employee-dialog/employee-dialog.component';
+import { EmployeeTableDialogComponent } from './employee-dialog/employee-table-dialog/employee-table-dialog.component';
 
 @NgModule({
   imports: [
@@ -36,6 +42,8 @@ import { CategoryTableDialogComponent } from './category-dialog/category-table-d
     // customer Module
     SharedModule,
     CustomMaterialModule,
+    Alias,
+    Alias2
   ],
   declarations: [
     ErrorDialog,
@@ -53,6 +61,8 @@ import { CategoryTableDialogComponent } from './category-dialog/category-table-d
     BankTableDialogComponent,
     CategoryDialogComponent,
     CategoryTableDialogComponent,
+    EmployeeDialogComponent,
+    EmployeeTableDialogComponent,
   ],
   providers: [
     DialogsService,
@@ -75,6 +85,8 @@ import { CategoryTableDialogComponent } from './category-dialog/category-table-d
     BankTableDialogComponent,
     CategoryDialogComponent,
     CategoryTableDialogComponent,
+    EmployeeDialogComponent,
+    EmployeeTableDialogComponent,
   ],
 })
 export class DialogsModule { }

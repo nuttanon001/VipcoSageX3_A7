@@ -70,20 +70,20 @@
         </mat-menu>
       </li>
       <!--Menu-2-->
-      <!--<li class="nav-item mx-1" *ngIf="GetLevel3">
+      <li class="nav-item mx-1" *ngIf="GetLevel3">
         <a #subMenu="matMenuTrigger" [matMenuTriggerFor]="menu2"
            (mouseenter)="menuOnOpenMenu(2)" class="nav-link">
           <span>Other</span>
         </a>
         <mat-menu class="mouseleave" #menu2="matMenu" [overlapTrigger]="true">
           <div (mouseleave)="menuOnCloseMenu(2)" style="padding-top:20px;">
-            <button mat-menu-item [routerLink]="['/home']" routerLinkActive="active">
-              <mat-icon>date_range</mat-icon>
-              <span>&nbsp;Other&nbsp;</span>
+            <button mat-menu-item [routerLink]="['/task-status']" routerLinkActive="active">
+              <mat-icon>query_builder</mat-icon>
+              <span>&nbsp;Task Schedule&nbsp;</span>
             </button>
           </div>
         </mat-menu>
-      </li>-->
+      </li>
       <!--Menu3-->
       <!--<li class="nav-item mx-1" *ngIf="GetLevel3">
     <a #subMenu2="matMenuTrigger" [matMenuTriggerFor]="menu3"

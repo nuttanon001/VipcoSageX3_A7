@@ -22,7 +22,7 @@ export class ErrorInterceptorService implements HttpInterceptor  {
 
         // console.log("intercept error");
         // location.reload(true);
-        //this.router.navigate(['/login']);
+        this.router.navigate(['/login']);
       }
 
       const error = err.error.message || err.statusText;

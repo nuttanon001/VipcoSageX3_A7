@@ -12,6 +12,7 @@ namespace VipcoSageX3.Services.ExcelExportServices
         {
             services.AddSingleton<HtmlDocumentService>();
             services.AddSingleton<ExcelWorkBookService>();
+            services.AddSingleton<JsonSerializerService>();
             services.AddScoped<IHelperService, HelperService>();
 
             return services;
