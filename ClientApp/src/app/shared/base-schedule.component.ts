@@ -121,6 +121,7 @@ export abstract class BaseScheduleComponent<Model, Service extends BaseRestServi
     // event.sortOrder = Sort order as number, 1 for asc and -1 for dec
     // filters: FilterMetadata object having field as key and filter value, filter matchMode as value
     this.rowPage = (event.rows || 15);
+    this.first = event.first;
     // imitate db connection over a network
     this.reportForm.patchValue({
       Skip: event.first,

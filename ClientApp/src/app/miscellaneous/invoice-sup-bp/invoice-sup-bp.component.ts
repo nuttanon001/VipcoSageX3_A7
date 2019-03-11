@@ -10,6 +10,7 @@ import { Scroll } from 'src/app/shared/scroll.model';
 import { ScrollData } from 'src/app/shared/scroll-data.model';
 import { ColumnType } from 'src/app/shared/column.model';
 import { ProjectCode } from 'src/app/dimension-datas/shared/project-code.model';
+import { Supplier } from 'src/app/dimension-datas/shared/supplier.model';
 
 @Component({
   selector: 'app-invoice-sup-bp',
@@ -128,7 +129,7 @@ export class InvoiceSupBpComponent extends BaseScheduleComponent<InvoiceSupBp, I
           });
       } else if (type === "Supplier") {
         this.serviceDialogs.dialogSelectSupplier(this.viewCon)
-          .subscribe(sub => {
+          .subscribe((sub:Supplier) => {
             this.needReset = true;
             this.reportForm.patchValue({
               WhereSupplier: sub ? sub.SupplierNo : undefined,

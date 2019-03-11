@@ -15,7 +15,8 @@ namespace VipcoSageX3.Models.SageX3Extends
         {
             modelBuilder.Entity<ReceiptExtend>().ToTable("ReceiptExtend");
             modelBuilder.Entity<TaskStatusDetail>().ToTable("TaskStatusDetail");
-            modelBuilder.Entity<TaskStatusMaster>().ToTable("TaskStatusMaster");
+            modelBuilder.Entity<TaskStatusMaster>().ToTable("TaskStatusMaster")
+                 .HasIndex(b => b.WorkGroupCode).IsUnique();
         }
 
         // Dbset

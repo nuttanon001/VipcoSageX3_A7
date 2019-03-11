@@ -79,7 +79,12 @@ namespace VipcoSageX3.Services.EmailServices
         public async Task<bool> SendMail(EmailViewModel email)
         {
             var message = this.mailMessageService.Create(email);
-            return await this.networkClient.SendEmail(message);
+            var result = await this.networkClient.SendEmail(message);
+            // Dispose attachment
+            if (email.HasAttach.HasValue && email.HasAttach.Value)
+                email.Attachment.Dispose();
+
+            return result;
         }
 
         public bool SendMailNoneAsync(EmailViewModel email)

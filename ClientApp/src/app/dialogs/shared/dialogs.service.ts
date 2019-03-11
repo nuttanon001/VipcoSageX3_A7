@@ -25,6 +25,8 @@ import { CategoryDialogComponent } from "../category-dialog/category-dialog.comp
 import { Category } from "../../dimension-datas/shared/category.model";
 import { DialogInfo } from 'src/app/shared2/basemode/dialog-info.model';
 import { EmployeeDialogComponent } from '../employee-dialog/employee-dialog.component';
+import { Customer } from 'src/app/dimension-datas/shared/customer.model';
+import { CustomerDialogComponent } from '../customer-dialog/customer-dialog.component';
 
 @Injectable()
 export class DialogsService {
@@ -186,7 +188,7 @@ export class DialogsService {
 * @param viewContainerRef
 * @param type = mode 0:fastSelected
 */
-  public dialogSelectSupplier(viewContainerRef: ViewContainerRef, type: number = 0): Observable<Supplier> {
+  public dialogSelectSupplier(viewContainerRef: ViewContainerRef, type: number = 0): Observable<Supplier | Array<Supplier>> {
     let dialogRef: MatDialogRef<SupplierDialogComponent>;
     let config: MatDialogConfig = new MatDialogConfig();
 
@@ -217,6 +219,27 @@ export class DialogsService {
 
     // open dialog
     dialogRef = this.dialog.open(EmployeeDialogComponent, config);
+    return dialogRef.afterClosed();
+  }
+
+  /**
+* Bank
+* @param viewContainerRef
+* @param type = mode 0:fastSelected
+*/
+  public dialogSelectCustomer(viewContainerRef: ViewContainerRef, type: number = 0): Observable<Customer | Array<Customer>> {
+    let dialogRef: MatDialogRef<CustomerDialogComponent>;
+    let config: MatDialogConfig = new MatDialogConfig();
+
+    // config
+    config.viewContainerRef = viewContainerRef;
+    config.data = type;
+    // config.height = this.height;
+    // config.width= this.width;
+    config.hasBackdrop = true;
+
+    // open dialog
+    dialogRef = this.dialog.open(CustomerDialogComponent, config);
     return dialogRef.afterClosed();
   }
 

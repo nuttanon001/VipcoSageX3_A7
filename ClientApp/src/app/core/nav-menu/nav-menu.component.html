@@ -27,9 +27,9 @@
         <mat-menu class="mouseleave" #menu1="matMenu" [overlapTrigger]="true">
           <div (mouseleave)="menuOnCloseMenu(1)" style="padding-top:20px;">
             <!--<button mat-menu-item [routerLink]="['/purchase-order']" routerLinkActive="active">
-      <mat-icon>cast_connected</mat-icon>
-      <span>&nbsp;Purchase Order&nbsp;</span>
-  </button>-->
+            <mat-icon>cast_connected</mat-icon>
+            <span>&nbsp;Purchase Order&nbsp;</span>
+        </button>-->
             <button mat-menu-item [routerLink]="['/purchase-request']" routerLinkActive="active">
               <!--matBadge-->
               <mat-icon>add_shopping_cart</mat-icon>
@@ -66,17 +66,45 @@
               <mat-icon>gesture</mat-icon>
               <span>&nbsp;Journal Entry&nbsp;</span>
             </button>
+            <button mat-menu-item [routerLink]="['/mics-account/out-due']" routerLinkActive="active">
+              <!--matBadge-->
+              <mat-icon>open_in_new</mat-icon>
+              <span>&nbsp;OutStanding/OverDue&nbsp;</span>
+            </button>
+          </div>
+        </mat-menu>
+      </li>
+      <!--Menu-2-->
+      <li class="nav-item mx-1">
+        <a #subMenu="matMenuTrigger" [matMenuTriggerFor]="menu2"
+           (mouseenter)="menuOnOpenMenu(2)" class="nav-link">
+          <span>For Purchase</span>
+        </a>
+        <mat-menu class="mouseleave" #menu2="matMenu" [overlapTrigger]="true">
+          <div (mouseleave)="menuOnCloseMenu(2)" style="padding-top:20px;">
+            <button mat-menu-item [routerLink]="['/purchase-request/posub-report']" routerLinkActive="active">
+              <mat-icon>shopping_basket</mat-icon>
+              <span>&nbsp;PurchaseOrder Report-1&nbsp;</span>
+            </button>
+            <button mat-menu-item [routerLink]="['/purchase-request/pr-outstanding']" routerLinkActive="active">
+              <mat-icon>toll_black</mat-icon>
+              <span>&nbsp;PurchaseRequest Outstanding&nbsp;</span>
+            </button>
+            <button mat-menu-item [routerLink]="['/purchase-request/po-outstanding']" routerLinkActive="active">
+              <mat-icon>fiber_smart_record</mat-icon>
+              <span>&nbsp;PurchaseOrder Outstanding&nbsp;</span>
+            </button>
           </div>
         </mat-menu>
       </li>
       <!--Menu-2-->
       <li class="nav-item mx-1" *ngIf="GetLevel3">
         <a #subMenu="matMenuTrigger" [matMenuTriggerFor]="menu2"
-           (mouseenter)="menuOnOpenMenu(2)" class="nav-link">
-          <span>Other</span>
+           (mouseenter)="menuOnOpenMenu(3)" class="nav-link">
+          <span>For Admin</span>
         </a>
         <mat-menu class="mouseleave" #menu2="matMenu" [overlapTrigger]="true">
-          <div (mouseleave)="menuOnCloseMenu(2)" style="padding-top:20px;">
+          <div (mouseleave)="menuOnCloseMenu(3)" style="padding-top:20px;">
             <button mat-menu-item [routerLink]="['/task-status']" routerLinkActive="active">
               <mat-icon>query_builder</mat-icon>
               <span>&nbsp;Task Schedule&nbsp;</span>

@@ -9,10 +9,12 @@ namespace VipcoSageX3.Services
     public interface IRepositoryDapperSageX3<Entity> where Entity : class
     {
         Task<List<PurchaseRequestAndOrderViewModel>> GetPurchaseRequestAndOrders(ScrollViewModel scroll);
-
         Task<List<Entity>> GetListEntites<Parameter>(string SqlCommand, Parameter parameter,int timeout = 60);
         Task<List<Entity>> GetListEntites(string SqlCommand, int timeout = 60);
+        Task<List<Entity>> GetEntities(SqlCommandViewModel sqlCommand, int timeout = 60);
+        // With ReturnViewModel
         Task<ReturnViewModel<Entity>> GetListEntitesAndTotalRow<Parameter>(string SqlCommand, Parameter parameter, int timeout = 60);
+        Task<ReturnViewModel<Entity>> GetEntitiesAndTotal<Parameter>(SqlCommandViewModel sqlCommand, Parameter parameter, int timeout = 60);
 
     }
 }

@@ -113,13 +113,17 @@ namespace VipcoSageX3.Migrations
 
                     b.HasKey("TaskStatusMasterId");
 
+                    b.HasIndex("WorkGroupCode")
+                        .IsUnique()
+                        .HasFilter("[WorkGroupCode] IS NOT NULL");
+
                     b.ToTable("TaskStatusMaster");
                 });
 
             modelBuilder.Entity("VipcoSageX3.Models.SageX3Extends.TaskStatusDetail", b =>
                 {
                     b.HasOne("VipcoSageX3.Models.SageX3Extends.TaskStatusMaster", "TaskStatusMaster")
-                        .WithMany()
+                        .WithMany("TaskStatusDetails")
                         .HasForeignKey("TaskStatusMasterId");
                 });
 #pragma warning restore 612, 618

@@ -91,7 +91,7 @@ namespace VipcoSageX3
             // Change AddDbContextPool if EF Core 2.1
             services.AddDbContextPool<MachineContext>(option =>
                 option.UseSqlServer(Configuration.GetConnectionString("MachineConnection")))
-                .AddDbContextPool<SageX3ExtendContext>(option => 
+                .AddDbContextPool<SageX3ExtendContext>(option =>
                 option.UseSqlServer(Configuration.GetConnectionString("SageX3ExtendsConnection")))
                 .AddDbContextPool<SageX3Context>(option =>
                 option.UseSqlServer(Configuration.GetConnectionString("SageX3Connection"), sqlServerOptions => sqlServerOptions.CommandTimeout(90)));

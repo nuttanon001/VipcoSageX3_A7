@@ -7,7 +7,6 @@ using RtfPipe;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +14,7 @@ using VipcoSageX3.Models.SageX3;
 using VipcoSageX3.Services;
 using VipcoSageX3.Services.ExcelExportServices;
 using VipcoSageX3.ViewModels;
+using VipcoSageX3.ViewModels.PurchasesModels;
 
 namespace VipcoSageX3.Controllers.SageX3
 {
@@ -32,6 +32,9 @@ namespace VipcoSageX3.Controllers.SageX3
         private readonly IRepositorySageX3<Itmmaster> repositoryItem;
         private readonly IRepositoryDapperSageX3<PurchaseRequestAndOrderViewModel> repositoryPrAndPo;
         private readonly IRepositoryDapperSageX3<PurchaseReceiptViewModel> repositoryPrq;
+        private readonly IRepositoryDapperSageX3<PurchaseSubReportViewModel> repositoryPoSubReport;
+        private readonly IRepositoryDapperSageX3<PrOutStandingViewModel> repositoryPrOutStanding;
+        private readonly IRepositoryDapperSageX3<PoOutStandingViewModel> repositoryPoOutStanding;
         private readonly IHelperService helperService;
         private readonly ExcelWorkBookService excelWorkBookService;
         private readonly IHostingEnvironment hosting;
@@ -51,10 +54,13 @@ namespace VipcoSageX3.Controllers.SageX3
             IRepositorySageX3<Itmmaster> repoItem,
             IRepositoryDapperSageX3<PurchaseRequestAndOrderViewModel> repoPrAndPo,
             IRepositoryDapperSageX3<PurchaseReceiptViewModel> repoPrq,
+            IRepositoryDapperSageX3<PurchaseSubReportViewModel> repoPoSubReport,
+            IRepositoryDapperSageX3<PrOutStandingViewModel> repoPrOutStanding,
+            IRepositoryDapperSageX3<PoOutStandingViewModel> repoPoOutStanding,
             IHelperService helper,
             SageX3Context x3Context,
             IHostingEnvironment hosting,
-            ExcelWorkBookService  workBookService,
+            ExcelWorkBookService workBookService,
             IMapper mapper) : base(repo, mapper)
         {
             // Repository SageX3
@@ -67,6 +73,10 @@ namespace VipcoSageX3.Controllers.SageX3
             this.repositoryPrAndPo = repoPrAndPo;
             this.repositoryPrq = repoPrq;
             this.repositoryItem = repoItem;
+            // Dapper
+            this.repositoryPoSubReport = repoPoSubReport;
+            this.repositoryPrOutStanding = repoPrOutStanding;
+            this.repositoryPoOutStanding = repoPoOutStanding;
             //DI
             this.helperService = helper;
             // Context
@@ -426,7 +436,6 @@ namespace VipcoSageX3.Controllers.SageX3
             return MapDatas;
         }
 
-
         private async Task<List<PurchaseRequestAndOrderViewModel>> GetData3(ScrollViewModel scroll)
         {
             if (scroll != null)
@@ -469,11 +478,11 @@ namespace VipcoSageX3.Controllers.SageX3
 
                 if (scroll.SDate.HasValue)
                     sWhere +=
-                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PRH.PRQDAT_0 >= '{scroll.SDate.Value.AddHours(7).ToString("yyyy-MM-dd")}'";
+                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PRH.PRQDAT_0 >= '{scroll.SDate.Value.ToString("yyyy-MM-dd")}'";
 
                 if (scroll.EDate.HasValue)
                     sWhere +=
-                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PRH.PRQDAT_0 <= '{scroll.EDate.Value.AddHours(7).ToString("yyyy-MM-dd")}'";
+                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PRH.PRQDAT_0 <= '{scroll.EDate.Value.ToString("yyyy-MM-dd")}'";
 
                 #endregion Where
 
@@ -564,7 +573,7 @@ namespace VipcoSageX3.Controllers.SageX3
                         else
                             sSort = $"PRD.EXTRCPDAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.prh.Creusr0);
                         break;
-                      
+
                     default:
                         sSort = $"PRH.PRQDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.prh.Prqdat0);
                         break;
@@ -579,6 +588,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                         PRH.CLEFLG_0 AS [PrCloseStatusInt],
                                         PRH.CREUSR_0 AS [CreateBy],
                                         PRH.PRQDAT_0 AS [PRDate],
+                                        PRH.ZPR11_0 AS [PROther],
                                         --PRD
                                         PRD.EXTRCPDAT_0 AS [RequestDate],
                                         PRD.PSHNUM_0 AS [PrNumber],
@@ -786,6 +796,637 @@ namespace VipcoSageX3.Controllers.SageX3
             return null;
         }
 
+        private async Task<List<PurchaseSubReportViewModel>> GetPoSubReport(ScrollViewModel Scroll)
+        {
+            if (Scroll != null)
+            {
+                // ACC_0 ลูกหนี้ในประเทศ 113101 และ ลูกหนี้ต่างประเทศ 113201
+                string sWhere = "";
+                string sSort = "";
+
+                #region Where
+
+                // Filter
+                var filters = string.IsNullOrEmpty(Scroll.Filter) ? new string[] { "" }
+                                    : Scroll.Filter.Split(null);
+
+                foreach (string temp in filters)
+                {
+                    if (string.IsNullOrEmpty(temp))
+                        continue;
+
+                    string keyword = temp.ToLower();
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") +
+                                                     $@"(LOWER(POD.POHNUM_0) LIKE '%{keyword}%'
+                                                        OR LOWER(POD.ITMDES_0) LIKE '%{keyword}%'
+                                                        OR LOWER(POH.PJTH_0) LIKE '%{keyword}%'
+                                                        OR LOWER(POQ.ITMREF_0) LIKE '%{keyword}%')";
+                }
+
+                // Where Customer
+                if (Scroll.WhereBanks.Any())
+                {
+                    var list = new List<string>();
+
+                    foreach (var item in Scroll.WhereBanks)
+                        list.Add($"'{item}'");
+
+                    var customers = string.Join(',', list);
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"POH.BPSNUM_0 IN ({customers})";
+                }
+
+                // Where Project
+                if (!string.IsNullOrEmpty(Scroll.WhereProject))
+                {
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"POH.PJTH_0 = '{Scroll.WhereProject}'";
+                }
+
+                // Where Date Range
+                if (Scroll.SDate.HasValue)
+                {
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"POH.ORDDAT_0 >= '{Scroll.SDate.Value.ToString("yyyy-MM-dd")}'";
+                }
+
+                if (Scroll.EDate.HasValue)
+                {
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"POH.ORDDAT_0 <= '{Scroll.EDate.Value.ToString("yyyy-MM-dd")}'";
+                }
+
+                #endregion Where
+
+                #region Sort
+
+                switch (Scroll.SortField)
+                {
+                    case "PoNumber":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POH.POHNUM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pshnum0);
+                        else
+                            sSort = $"POH.POHNUM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pshnum0);
+                        break;
+
+                    case "PoDateString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POH.ORDDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pjth0);
+                        else
+                            sSort = $"POH.ORDDAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pjth0);
+                        break;
+
+                    case "ItemNo":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POQ.ITMREF_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POQ.ITMREF_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "TextName":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POD.ITMDES_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POD.ITMDES_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Project":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POH.PJTH_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POH.PJTH_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "SupName":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"SUP.ZCOMPNAME_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"SUP.ZCOMPNAME_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Uom":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POQ.UOM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POQ.UOM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "QuantityString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POQ.QTYUOM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POQ.QTYUOM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Weigth":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POQ.QTYWEU_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POQ.QTYWEU_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Amount":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POQ.LINAMT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POQ.LINAMT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    default:
+                        sSort = $"POH.ORDDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        break;
+                }
+
+                #endregion Sort
+
+                var sqlCommnad = new SqlCommandViewModel()
+                {
+                    SelectCommand = $@"	POH.POHNUM_0 AS PoNumber,
+                                        POH.ORDDAT_0 AS PoDate,
+                                        POQ.ITMREF_0 AS ItemNo,
+                                        POD.ITMDES_0 AS ItemName,
+                                        TXT.TEXTE_0 AS TextName,
+                                        POH.PJTH_0 AS Project,
+                                        DIMPO.CCE_0 AS Branch,
+                                        DIMPO.CCE_2 AS ProjectLine,
+                                        SUP.ZCOMPNAME_0 AS SupName,
+                                        SUP.BPSNAM_0 AS SupName2,
+                                        POQ.UOM_0 AS Uom,
+                                        POQ.QTYUOM_0 AS Quantity,
+                                        POQ.QTYWEU_0 AS Weigth,
+                                        POQ.LINAMT_0 AS Amount",
+                    FromCommand = $@" [VIPCO].[PORDERP] [POD]
+                                        LEFT OUTER JOIN [VIPCO].[PORDERQ] [POQ]
+                                            ON [POD].[POHNUM_0] = [POQ].[POHNUM_0]
+                                            AND [POD].[POPLIN_0] = [POQ].[POPLIN_0]
+                                        LEFT OUTER JOIN [VIPCO].[PORDER] [POH]
+                                            ON [POD].[POHNUM_0] = [POH].[POHNUM_0]
+                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIMPO
+                                            ON DIMPO.ABRFIC_0 = 'POP'
+                                                AND DIMPO.VCRTYP_0 = 0
+                                                AND POQ.POQSEQ_0 = DIMPO.VCRSEQ_0
+                                                AND POQ.POHNUM_0 = DIMPO.VCRNUM_0
+                                                AND POQ.POPLIN_0 = DIMPO.VCRLIN_0
+                                                AND DIMPO.CPLCLE_0 = ''
+                                                AND DIMPO.ANALIG_0 = 1
+                                        LEFT OUTER JOIN [VIPCO].[TEXCLOB] [TXT]
+                                            ON [TXT].[CODE_0] = [POQ].[LINTEX_0]
+                                        LEFT OUTER JOIN [VIPCO].[BPSUPPLIER] [SUP]
+                                            ON [POH].[BPSNUM_0] = [SUP].[BPSNUM_0]",
+                    WhereCommand = sWhere,
+                    OrderCommand = sSort
+                };
+
+                var result = await this.repositoryPoSubReport.GetEntitiesAndTotal(sqlCommnad, new { Skip = Scroll.Skip ?? 0, Take = Scroll.Take ?? 50 });
+                var dbData = result.Entities;
+                Scroll.TotalRow = result.TotalRow;
+
+                foreach (var item in dbData)
+                {
+                    if (!string.IsNullOrEmpty(item.TextName))
+                    {
+                        if (item.TextName.StartsWith("{\\rtf1"))
+                            item.TextName = Rtf.ToHtml(item.TextName);
+                    }
+                    else
+                        item.TextName = item.ItemName;
+
+                    if (!string.IsNullOrEmpty(item.SupName))
+                        item.SupName = item.SupName2;
+                }
+
+                return dbData;
+            }
+            return null;
+        }
+
+        private async Task<List<PrOutStandingViewModel>> GetPrOutStanding(ScrollViewModel Scroll)
+        {
+            if (Scroll != null)
+            {
+                // ACC_0 ลูกหนี้ในประเทศ 113101 และ ลูกหนี้ต่างประเทศ 113201
+                string sWhere = "PRH.ORDFLG_0 = 1 AND PRH.CLEFLG_0 = 1 ";
+                string sSort = "";
+
+                #region Where
+
+                // Filter
+                var filters = string.IsNullOrEmpty(Scroll.Filter) ? new string[] { "" }
+                                    : Scroll.Filter.Split(null);
+
+                foreach (string temp in filters)
+                {
+                    if (string.IsNullOrEmpty(temp))
+                        continue;
+
+                    string keyword = temp.ToLower();
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") +
+                                                     $@"(LOWER(PRD.PSHNUM_0) LIKE '%{keyword}%'
+                                                        OR LOWER(PRD.ITMREF_0) LIKE '%{keyword}%'
+                                                        OR LOWER(PRH.PJTH_0) LIKE '%{keyword}%'
+                                                        OR LOWER(PRD.ITMREF_0) LIKE '%{keyword}%')";
+                }
+
+                // Where Project
+                if (!string.IsNullOrEmpty(Scroll.WhereProject))
+                {
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"PRH.PJTH_0 = '{Scroll.WhereProject}'";
+                }
+
+                // Where Date Range
+                if (Scroll.SDate.HasValue)
+                {
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"PRH.PRQDAT_0 >= '{Scroll.SDate.Value.ToString("yyyy-MM-dd")}'";
+                }
+
+                if (Scroll.EDate.HasValue)
+                {
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"PRH.PRQDAT_0 <= '{Scroll.EDate.Value.ToString("yyyy-MM-dd")}'";
+                }
+
+                #endregion Where
+
+                #region Sort
+
+                switch (Scroll.SortField)
+                {
+                    case "PrNumber":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PRD.PSHNUM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pshnum0);
+                        else
+                            sSort = $"PRD.PSHNUM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pshnum0);
+                        break;
+
+                    case "PrDateString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PRH.PRQDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pjth0);
+                        else
+                            sSort = $"PRH.PRQDAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pjth0);
+                        break;
+
+                    case "RequestDateString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PRD.EXTRCPDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pjth0);
+                        else
+                            sSort = $"PRD.EXTRCPDAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pjth0);
+                        break;
+
+                    case "ItemNo":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PRD.ITMREF_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"PRD.ITMREF_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "TextName":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PRD.ITMDES_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"PRD.ITMDES_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Project":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PRH.PJTH_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"PRH.PJTH_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Branch":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"DIM.CCE_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"SUP.CCE_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Uom":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PRD.PUU_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"PRD.PUU_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "WorkItem":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"DIM.CCE_1 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"DIM.CCE_1 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "WorkGroup":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"DIM.CCE_3 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"DIM.CCE_3 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "QuantityString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PRD.QTYPUU_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"PRD.QTYPUU_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    default:
+                        sSort = $"PRH.PRQDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        break;
+                }
+
+                #endregion Sort
+
+                var sqlCommnad = new SqlCommandViewModel()
+                {
+                    SelectCommand = $@"	PRD.PSHNUM_0 AS [PrNumber],
+                                        PRH.PJTH_0 AS [Project],
+                                        PRH.PRQDAT_0 AS [PrDate],
+                                        PRD.EXTRCPDAT_0 AS [RequestDate],
+                                        PRH.ZPR11_0 AS [Other],
+                                        PRH.ZPR30_0 AS [PrType],
+                                        PRD.ITMREF_0 AS [ItemNo],
+                                        PRD.ITMDES_0 AS [ItemName],
+                                        TXT.TEXTE_0 AS [TextName],
+                                        PRD.PUU_0 AS [Uom],
+                                        DIM.CCE_0 AS [Branch],
+                                        BOM.TEXTE_0 AS [WorkItem],
+                                        DIM.CCE_2 AS [ProjectLine],
+                                        WG.TEXTE_0 AS [WorkGroup],
+                                        PRD.QTYPUU_0 AS [Quantity],
+                                        PRH.CLEFLG_0 AS [StatusClose],
+                                        PRH.ORDFLG_0 AS [StatusOrder],
+                                        PRH.CREUSR_0 AS [CreateBy],
+                                        ITM.ITMWEI_0 AS [ItemWeigth],
+                                        SYSDATETIME() AS [NowDate],
+                                        DATEDIFF(DAY,SYSDATETIME(),PRD.EXTRCPDAT_0) AS [DIFF]",
+                    FromCommand = $@" VIPCO.PREQUISD PRD
+                                        LEFT OUTER JOIN VIPCO.PREQUIS PRH
+                                        ON PRD.PSHNUM_0 = PRH.PSHNUM_0
+                                        LEFT OUTER JOIN VIPCO.TEXCLOB TXT
+                                        ON PRD.LINTEX_0 = TXT.CODE_0
+                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIM
+                                        ON DIM.ABRFIC_0 = 'PSD'
+                                            AND DIM.VCRTYP_0 = 0
+                                            AND DIM.VCRSEQ_0 = 0
+                                            AND DIM.CPLCLE_0 = ''
+                                            AND DIM.ANALIG_0 = 1
+                                            AND PRD.PSHNUM_0 = DIM.VCRNUM_0
+                                            AND PRD.PSDLIN_0 = DIM.VCRLIN_0
+                                        LEFT OUTER JOIN [VIPCO].[ATEXTRA] BOM
+                                        ON DIM.CCE_1 = BOM.IDENT2_0
+                                            AND BOM.ZONE_0 = 'LNGDES'
+                                            AND BOM.IDENT1_0 = '3000'
+                                        LEFT OUTER JOIN [VIPCO].[ATEXTRA] WG
+                                        ON DIM.CCE_3 = WG.IDENT2_0
+                                            AND WG.ZONE_0 = 'DESTRA'
+                                            AND WG.IDENT1_0 = 'WG'
+                                        LEFT OUTER JOIN [VIPCO].[ITMMASTER] ITM
+                                        ON PRD.ITMREF_0 = ITM.ITMREF_0",
+                    WhereCommand = sWhere,
+                    OrderCommand = sSort
+                };
+
+                var result = await this.repositoryPrOutStanding.GetEntitiesAndTotal(sqlCommnad, new { Skip = Scroll.Skip ?? 0, Take = Scroll.Take ?? 50 });
+                var dbData = result.Entities;
+                Scroll.TotalRow = result.TotalRow;
+
+                foreach (var item in dbData)
+                {
+                    if (!string.IsNullOrEmpty(item.TextName))
+                    {
+                        if (item.TextName.StartsWith("{\\rtf1"))
+                            item.TextName = Rtf.ToHtml(item.TextName);
+                    }
+                    else
+                        item.TextName = item.ItemName;
+                }
+
+                return dbData;
+            }
+            return null;
+        }
+
+        private async Task<List<PoOutStandingViewModel>> GetPoOutStanding(ScrollViewModel Scroll)
+        {
+            if (Scroll != null)
+            {
+                // ACC_0 ลูกหนี้ในประเทศ 113101 และ ลูกหนี้ต่างประเทศ 113201
+                string sWhere = "POH.CLEFLG_0 != 2 ";
+                string sSort = "";
+
+                #region Where
+
+                // Filter
+                var filters = string.IsNullOrEmpty(Scroll.Filter) ? new string[] { "" }
+                                    : Scroll.Filter.Split(null);
+
+                foreach (string temp in filters)
+                {
+                    if (string.IsNullOrEmpty(temp))
+                        continue;
+
+                    string keyword = temp.ToLower();
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") +
+                                                     $@"(LOWER(POH.POHNUM_0) LIKE '%{keyword}%'
+                                                        OR LOWER(POH.PJTH_0) LIKE '%{keyword}%'
+                                                        OR LOWER(POQ.ITMREF_0) LIKE '%{keyword}%'
+                                                        OR LOWER(POD.ITMDES_0) LIKE '%{keyword}%')";
+                }
+
+                // Where Project
+                if (!string.IsNullOrEmpty(Scroll.WhereProject))
+                {
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"POH.PJTH_0 = '{Scroll.WhereProject}'";
+                }
+
+                // Where Supplier
+                if (Scroll.WhereBanks.Any())
+                {
+                    var list = new List<string>();
+
+                    foreach (var item in Scroll.WhereBanks)
+                        list.Add($"'{item}'");
+
+                    var customers = string.Join(',', list);
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"POH.BPSNUM_0 IN ({customers})";
+                }
+
+                // Where Date Range
+                if (Scroll.SDate.HasValue)
+                {
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"POH.ORDDAT_0 >= '{Scroll.SDate.Value.ToString("yyyy-MM-dd")}'";
+                }
+
+                if (Scroll.EDate.HasValue)
+                {
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"POH.ORDDAT_0 <= '{Scroll.EDate.Value.ToString("yyyy-MM-dd")}'";
+                }
+
+                #endregion Where
+
+                #region Sort
+
+                switch (Scroll.SortField)
+                {
+                    case "PoNumber":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POH.POHNUM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pshnum0);
+                        else
+                            sSort = $"POH.POHNUM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pshnum0);
+                        break;
+
+                    case "Project":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POH.PJTH_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POH.PJTH_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "PoDateString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POH.ORDDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pjth0);
+                        else
+                            sSort = $"POH.ORDDAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pjth0);
+                        break;
+
+                    case "DueDateString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POQ.EXTRCPDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pjth0);
+                        else
+                            sSort = $"POQ.EXTRCPDAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pjth0);
+                        break;
+
+                    case "ItemNo":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POQ.ITMREF_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POQ.ITMREF_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "TextName":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POD.ITMDES_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POD.ITMDES_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Branch":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"DIMPO.CCE_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"DIMPO.CCE_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Uom":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POQ.UOM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POQ.UOM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "WorkItem":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"DIMPO.CCE_1 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"DIMPO.CCE_1 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "WorkGroup":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"DIMPO.CCE_3 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"DIMPO.CCE_3 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "QuantityString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POQ.QTYUOM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POQ.QTYUOM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "SupName":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"POH.BPSNUM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"POH.BPSNUM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    default:
+                        sSort = $"POH.ORDDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        break;
+                }
+
+                #endregion Sort
+
+                var sqlCommnad = new SqlCommandViewModel()
+                {
+                    SelectCommand = $@"	POH.POHNUM_0 AS [PoNumber],
+                                        POH.PJTH_0 AS [Project],
+                                        POH.ORDDAT_0 AS [PoDate],
+                                        POQ.EXTRCPDAT_0 AS [DueDate],
+                                        POQ.ITMREF_0 AS [ItemNo],
+                                        POD.ITMDES_0 AS [ItemName],
+                                        TXT.TEXTE_0 AS [TextName],
+                                        POQ.UOM_0 AS [Uom],
+                                        --DIMPO
+                                        DIMPO.CCE_0 AS [Branch],
+                                        BOM.TEXTE_0 AS [WorkItem],
+                                        DIMPO.CCE_2 AS [ProjectLine],
+                                        WG.TEXTE_0 AS [WorkGroup],
+                                        POQ.QTYUOM_0 AS [Quantity],
+                                        POQ.QTYWEU_0 AS [Weigth],
+                                        POQ.LINAMT_0 AS [Amount],
+                                        POH.CLEFLG_0 AS [StatusClose],
+                                        POH.ZPO21_0 AS [StatusOrder],
+                                        SUP.ZCOMPNAME_0 AS [SupName],
+                                        SUP.BPSNAM_0 AS [SupName2],
+                                        SYSDATETIME() AS [SysDate],
+                                        DATEDIFF(DAY,SYSDATETIME(),POQ.EXTRCPDAT_0) AS [DIFF]",
+                    FromCommand = $@" [VIPCO].[PORDERP] [POD]
+                                        LEFT OUTER JOIN [VIPCO].[PORDERQ] [POQ]
+                                        ON [POD].[POHNUM_0] = [POQ].[POHNUM_0]
+                                            AND [POD].[POPLIN_0] = [POQ].[POPLIN_0]
+                                        LEFT OUTER JOIN [VIPCO].[PORDER] [POH]
+                                        ON [POD].[POHNUM_0] = [POH].[POHNUM_0]
+                                        LEFT OUTER JOIN [VIPCO].[TEXCLOB] [TXT]
+                                        ON [TXT].[CODE_0] = [POQ].[LINTEX_0]
+                                        LEFT OUTER JOIN [VIPCO].[BPSUPPLIER] [SUP]
+                                        ON [POH].[BPSNUM_0] = [SUP].[BPSNUM_0]
+                                        LEFT OUTER JOIN VIPCO.CPTANALIN DIMPO
+                                        ON DIMPO.ABRFIC_0 = 'POP'
+                                            AND DIMPO.VCRTYP_0 = 0
+                                            AND POQ.POQSEQ_0 = DIMPO.VCRSEQ_0
+                                            AND POQ.POHNUM_0 = DIMPO.VCRNUM_0
+                                            AND POQ.POPLIN_0 = DIMPO.VCRLIN_0
+                                            AND DIMPO.CPLCLE_0 = ''
+                                            AND DIMPO.ANALIG_0 = 1
+                                        LEFT OUTER JOIN [VIPCO].[ATEXTRA] BOM
+                                        ON DIMPO.CCE_1 = BOM.IDENT2_0
+                                            AND BOM.ZONE_0 = 'LNGDES'
+                                            AND BOM.IDENT1_0 = '3000'
+                                        LEFT OUTER JOIN [VIPCO].[ATEXTRA] WG
+                                        ON DIMPO.CCE_3 = WG.IDENT2_0
+                                            AND WG.ZONE_0 = 'DESTRA'
+                                            AND WG.IDENT1_0 = 'WG'",
+                    WhereCommand = sWhere,
+                    OrderCommand = sSort
+                };
+
+                var result = await this.repositoryPoOutStanding.GetEntitiesAndTotal(sqlCommnad, new { Skip = Scroll.Skip ?? 0, Take = Scroll.Take ?? 50 });
+                var dbData = result.Entities;
+                Scroll.TotalRow = result.TotalRow;
+
+                foreach (var item in dbData)
+                {
+                    if (!string.IsNullOrEmpty(item.TextName))
+                    {
+                        if (item.TextName.StartsWith("{\\rtf1"))
+                            item.TextName = Rtf.ToHtml(item.TextName);
+                    }
+                    else
+                        item.TextName = item.ItemName;
+                }
+
+                return dbData;
+            }
+            return null;
+        }
+
         // POST: api/PurchaseRequest/GetScroll
         [HttpPost("GetScroll")]
         public async Task<IActionResult> GetScroll([FromBody] ScrollViewModel Scroll)
@@ -841,6 +1482,7 @@ namespace VipcoSageX3.Controllers.SageX3
                         new DataColumn("Branch",typeof(string)),
                         new DataColumn("BomLv",typeof(string)),
                         new DataColumn("WorkGroup",typeof(string)),
+                        new DataColumn("Other",typeof(string)),
                         new DataColumn("Qty",typeof(int)),
                         new DataColumn("PrWeight",typeof(string)),
                         new DataColumn("PrClose",typeof(string)),
@@ -894,6 +1536,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                     item.Branch,
                                     item.WorkItemName,
                                     item.WorkGroupName,
+                                    item.PROther,
                                     item.QuantityPur,
                                     item.PrWeightString,
                                     item.PrCloseStatus,
@@ -939,6 +1582,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                    item.Branch,
                                    item.WorkItemName,
                                    item.WorkGroupName,
+                                   item.PROther,
                                    item.QuantityPur,
                                    item.PrWeightString,
                                    item.PrCloseStatus,
@@ -970,10 +1614,9 @@ namespace VipcoSageX3.Controllers.SageX3
                                    ""
                                );
                         }
-                      
                     }
 
-                    return File(this.helperService.CreateExcelFilePivotTables(table,"PurchaseStatus","PurchaseDataPivot"),
+                    return File(this.helperService.CreateExcelFilePivotTables(table, "PurchaseStatus", "PurchaseDataPivot"),
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Payment_Report.xlsx");
                 }
             }
@@ -983,6 +1626,281 @@ namespace VipcoSageX3.Controllers.SageX3
             }
             return BadRequest(new { Error = Message });
         }
+
+        [HttpPost("SubReportGetScroll")]
+        public async Task<IActionResult> SubReportGetScroll([FromBody] ScrollViewModel Scroll)
+        {
+            if (Scroll == null)
+                return BadRequest();
+
+            var Message = "";
+            try
+            {
+                var MapDatas = await this.GetPoSubReport(Scroll);
+                foreach (var item in MapDatas)
+                {
+                    item.ItemName = this.helperService.ConvertHtmlToText(item.ItemName);
+                }
+                return new JsonResult(new ScrollDataViewModel<PurchaseSubReportViewModel>(Scroll, MapDatas), this.DefaultJsonSettings);
+            }
+            catch (Exception ex)
+            {
+                Message = $"{ex.ToString()}";
+            }
+            return BadRequest(new { Message });
+        }
+
+        [HttpPost("SubReportGetReport")]
+        public async Task<IActionResult> SubReportGetReport([FromBody] ScrollViewModel Scroll)
+        {
+            var Message = "Data not been found.";
+            try
+            {
+                if (Scroll != null)
+                {
+                    var MapDatas = await this.GetPoSubReport(Scroll);
+
+                    if (MapDatas.Any())
+                    {
+                        var table = new DataTable();
+                        //Adding the Columns
+                        foreach (var field in MapDatas[0].GetType().GetProperties()) // Loop through fields
+                        {
+                            string name = field.Name; // Get string name
+                            var value = field.GetValue(MapDatas[0], null);
+
+                            if (value is DateTime || value is double || value is int || value is null)
+                                continue;
+
+                            if (name == "ItemName" || name == "SupName2" || name == "Project" || name == "Branch")
+                                continue;
+
+                            table.Columns.Add(field.Name.Replace("String", ""), typeof(string));
+                        }
+
+                        //Adding the Rows
+                        // Table1
+                        foreach (var item in MapDatas)
+                        {
+                            item.TextName = this.helperService.ConvertHtmlToText(item.TextName);
+                            item.TextName = item.TextName.Replace("\r\n", "");
+                            item.TextName = item.TextName.Replace("\n", "");
+
+                            table.Rows.Add(
+                                item.PoDateString,
+                                item.PoNumber,
+                                item.ItemNo,
+                                (string.IsNullOrEmpty(item.TextName) ? item.ItemName : item.TextName),
+                                item.ProjectLine,
+                                (string.IsNullOrEmpty(item.SupName) ? item.SupName2 : item.SupName),
+                                item.Uom,
+                                item.QuantityString,
+                                item.UnitPriceString,
+                                item.AmountString,
+                                item.WeigthPerQuantityString,
+                                item.WeigthString,
+                                item.AmountPerKgString);
+                        }
+
+                        var file = this.helperService.CreateExcelFile(table, "PurchaseOrderReport");
+                        return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Journal.xlsx");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Message = $"Has error{ex.ToString()}";
+            }
+            return BadRequest(new { Error = Message });
+        }
+
+        [HttpPost("OutStandingGetScroll")]
+        public async Task<IActionResult> OutStandingGetScroll([FromBody] ScrollViewModel Scroll)
+        {
+            if (Scroll == null)
+                return BadRequest();
+
+            var Message = "";
+            try
+            {
+                var MapDatas = await this.GetPrOutStanding(Scroll);
+                foreach (var item in MapDatas)
+                {
+                    item.ItemName = this.helperService.ConvertHtmlToText(item.ItemName);
+                }
+                return new JsonResult(new ScrollDataViewModel<PrOutStandingViewModel>(Scroll, MapDatas), this.DefaultJsonSettings);
+            }
+            catch (Exception ex)
+            {
+                Message = $"{ex.ToString()}";
+            }
+            return BadRequest(new { Message });
+        }
+
+        [HttpPost("OutStandingGetReport")]
+        public async Task<IActionResult> OutStandingGetReport([FromBody] ScrollViewModel Scroll)
+        {
+            var Message = "Data not been found.";
+            try
+            {
+                if (Scroll != null)
+                {
+                    var MapDatas = await this.GetPrOutStanding(Scroll);
+
+                    if (MapDatas.Any())
+                    {
+                        var table = new DataTable();
+                        //Adding the Columns
+                        foreach (var field in MapDatas[0].GetType().GetProperties()) // Loop through fields
+                        {
+                            string name = field.Name; // Get string name
+                            var value = field.GetValue(MapDatas[0], null);
+
+                            if (value is DateTime || value is double || value is int || value is null)
+                                continue;
+
+                            if (name == "ItemName" || name == "ProjectLine")
+                                continue;
+
+                            table.Columns.Add(field.Name.Replace("String", ""), typeof(string));
+                        }
+
+                        //Adding the Rows
+                        // Table1
+                        foreach (var item in MapDatas)
+                        {
+                            item.TextName = this.helperService.ConvertHtmlToText(item.TextName);
+                            item.TextName = item.TextName.Replace("\r\n", "");
+                            item.TextName = item.TextName.Replace("\n", "");
+
+                            table.Rows.Add(
+                                item.PrNumber,
+                                item.Project,
+                                item.PrDateString,
+                                item.RequestDateString,
+                                item.Other,
+                                item.PrTypeString,
+                                item.ItemNo,
+                                (string.IsNullOrEmpty(item.TextName) ? item.ItemName : item.TextName),
+                                item.Uom,
+                                item.Branch,
+                                item.WorkItem,
+                                item.WorkGroup,
+                                item.QuantityString,
+                                item.ItemWeigthString,
+                                item.WeightPerQtyString,
+                                item.StatusCloseString,
+                                item.StatusOrderString,
+                                item.CreateBy,
+                                item.NowDateString,
+                                item.DIFFString);
+                        }
+
+                        var file = this.helperService.CreateExcelFile(table, "PROutStanding");
+                        return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Journal.xlsx");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Message = $"Has error{ex.ToString()}";
+            }
+            return BadRequest(new { Error = Message });
+        }
+
+        [HttpPost("PoOutStandingGetScroll")]
+        public async Task<IActionResult> PoOutStandingGetScroll([FromBody] ScrollViewModel Scroll)
+        {
+            if (Scroll == null)
+                return BadRequest();
+
+            var Message = "";
+            try
+            {
+                var MapDatas = await this.GetPoOutStanding(Scroll);
+                foreach (var item in MapDatas)
+                {
+                    item.ItemName = this.helperService.ConvertHtmlToText(item.ItemName);
+                }
+                return new JsonResult(new ScrollDataViewModel<PoOutStandingViewModel>(Scroll, MapDatas), this.DefaultJsonSettings);
+            }
+            catch (Exception ex)
+            {
+                Message = $"{ex.ToString()}";
+            }
+            return BadRequest(new { Message });
+        }
+
+        [HttpPost("PoOutStandingGetReport")]
+        public async Task<IActionResult> PoOutStandingGetReport([FromBody] ScrollViewModel Scroll)
+        {
+            var Message = "Data not been found.";
+            try
+            {
+                if (Scroll != null)
+                {
+                    var MapDatas = await this.GetPoOutStanding(Scroll);
+
+                    if (MapDatas.Any())
+                    {
+                        var table = new DataTable();
+                        //Adding the Columns
+                        foreach (var field in MapDatas[0].GetType().GetProperties()) // Loop through fields
+                        {
+                            string name = field.Name; // Get string name
+                            var value = field.GetValue(MapDatas[0], null);
+
+                            if (value is DateTime || value is double || value is int || value is null)
+                                continue;
+
+                            if (name == "ItemName" || name == "ProjectLine" || name == "SupName2")
+                                continue;
+
+                            table.Columns.Add(field.Name.Replace("String", ""), typeof(string));
+                        }
+
+                        //Adding the Rows
+                        // Table1
+                        foreach (var item in MapDatas)
+                        {
+                            item.TextName = this.helperService.ConvertHtmlToText(item.TextName);
+                            item.TextName = item.TextName.Replace("\r\n", "");
+                            item.TextName = item.TextName.Replace("\n", "");
+
+                            table.Rows.Add(
+                                item.PoNumber,
+                                item.Project,
+                                item.PoDateString,
+                                item.DueDateString,
+                                item.ItemNo,
+                                (string.IsNullOrEmpty(item.TextName) ? item.ItemName : item.TextName),
+                                item.Uom,
+                                item.Branch,
+                                item.WorkItem,
+                                item.WorkGroup,
+                                item.QuantityString,
+                                item.WeigthString,
+                                item.AmountString,
+                                item.StatusCloseString,
+                                item.StatusOrderString,
+                                item.SupName,
+                                item.SysDateString,
+                                item.DIFFString);
+                        }
+
+                        var file = this.helperService.CreateExcelFile(table, "POOutStanding");
+                        return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Journal.xlsx");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Message = $"Has error{ex.ToString()}";
+            }
+            return BadRequest(new { Error = Message });
+        }
+
+        #region No use
 
         /*
         public async Task<IActionResult> GetReport2([FromBody] ScrollViewModel Scroll)
@@ -1103,5 +2021,7 @@ namespace VipcoSageX3.Controllers.SageX3
             return BadRequest(new { Error = Message });
         }
         */
+
+        #endregion No use
     }
 }

@@ -8,6 +8,7 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { Router } from '@angular/router';
 import { Scroll } from 'src/app/shared/scroll.model';
 import { ScrollData } from 'src/app/shared/scroll-data.model';
+import { ProjectCode } from 'src/app/dimension-datas/shared/project-code.model';
 
 @Component({
   selector: 'app-journal2',
@@ -110,7 +111,20 @@ export class Journal2Component extends BaseScheduleComponent<Journal2, InvoiceSe
   }
 
   // Open Dialog
-  onShowDialog(type?: string): void { }
+  onShowDialog(type?: string): void {
+   if (type) {
+      if (type === "Project") {
+        this.serviceDialogs.dialogSelectProject(this.viewCon)
+          .subscribe((pjt: ProjectCode) => {
+            this.needReset = true;
+            this.reportForm.patchValue({
+              WhereProject: pjt ? pjt.ProjectCode : undefined,
+              ProjectString: pjt ? `${pjt.ProjectCode} | ${pjt.ProjectName}` : undefined,
+            });
+          });
+      }
+    }
+  }
 
   // get report data
   onReport(): void {

@@ -18,6 +18,7 @@ export interface PrAndPo {
   /// PREQUISD.PSDLIN
   /// </summary>
   PrLine?: number;
+  PROther?: string;
   /// <summary>
   /// PREQUISD.ITMREF
   /// </summary>

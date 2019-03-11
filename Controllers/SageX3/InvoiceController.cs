@@ -1,16 +1,14 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
-using VipcoSageX3.ViewModels;
 using VipcoSageX3.Services;
 using VipcoSageX3.Services.ExcelExportServices;
-using Newtonsoft.Json;
-using System.Data;
-using Microsoft.AspNetCore.Authorization;
+using VipcoSageX3.ViewModels;
 
 namespace VipcoSageX3.Controllers.SageX3
 {
@@ -19,9 +17,9 @@ namespace VipcoSageX3.Controllers.SageX3
     [Authorize]
     public class InvoiceController : ControllerBase
     {
-
         private readonly IRepositoryDapperSageX3<InvoiceSupBPViewModel> repositoryInvoice;
         private readonly IRepositoryDapperSageX3<Journal2ViewModel> repositoryJournal2;
+        private readonly IRepositoryDapperSageX3<InvoiceOutStandingViewModel> repositoryInvOutStand;
         private readonly IHelperService helperService;
 
         public JsonSerializerSettings DefaultJsonSettings =>
@@ -35,15 +33,16 @@ namespace VipcoSageX3.Controllers.SageX3
         public InvoiceController(
             IRepositoryDapperSageX3<InvoiceSupBPViewModel> repoInvoice,
             IRepositoryDapperSageX3<Journal2ViewModel> repoJournal2,
+            IRepositoryDapperSageX3<InvoiceOutStandingViewModel> repoInvOutStand,
             IHelperService helperService)
         {
             // Repository
             this.repositoryInvoice = repoInvoice;
             this.repositoryJournal2 = repoJournal2;
+            this.repositoryInvOutStand = repoInvOutStand;
             // Helper
             this.helperService = helperService;
         }
-
 
         private async Task<List<InvoiceSupBPViewModel>> GetData(ScrollViewModel scroll, bool option = false)
         {
@@ -72,18 +71,18 @@ namespace VipcoSageX3.Controllers.SageX3
                 }
 
                 if (!string.IsNullOrEmpty(scroll.WhereProject))
-                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"BPSL.PJTLIN_0 = '{scroll.WhereProject}'";
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"LOWER(BPSL.PJTLIN_0) LIKE '%{scroll.WhereProject.ToLower()}%'";
 
                 if (!string.IsNullOrEmpty(scroll.WhereSupplier))
-                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PIN.BPR_0 = '{scroll.WhereSupplier}'";
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"LOWER(PIN.BPR_0) = '{scroll.WhereSupplier.ToLower()}'";
 
                 if (scroll.SDate.HasValue)
                     sWhere +=
-                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PIN.ACCDAT_0 >= '{scroll.SDate.Value.AddHours(7).ToString("yyyy-MM-dd")}'";
+                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PIN.ACCDAT_0 >= '{scroll.SDate.Value.ToString("yyyy-MM-dd")}'";
 
                 if (scroll.EDate.HasValue)
                     sWhere +=
-                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PIN.ACCDAT_0 <= '{scroll.EDate.Value.AddHours(7).ToString("yyyy-MM-dd")}'";
+                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PIN.ACCDAT_0 <= '{scroll.EDate.Value.ToString("yyyy-MM-dd")}'";
 
                 #endregion Where
 
@@ -139,18 +138,21 @@ namespace VipcoSageX3.Controllers.SageX3
                         else
                             sSort = $"BPSL.ACC_0 ASC";//QueryData = QueryData.OrderBy(x => x.PIN.Cce1);
                         break;
+
                     case "AmountTaxString":
                         if (scroll.SortOrder == -1)
                             sSort = $"BPSL.AMTNOTLIN_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PIN.Cce1);
                         else
                             sSort = $"BPSL.AMTNOTLIN_0 ASC";//QueryData = QueryData.OrderBy(x => x.PIN.Cce1);
                         break;
+
                     case "Tax":
                         if (scroll.SortOrder == -1)
                             sSort = $"BPSL.VAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PIN.Cce1);
                         else
                             sSort = $"BPSL.VAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PIN.Cce1);
                         break;
+
                     case "Project1":
                         if (scroll.SortOrder == -1)
                             sSort = $"BPSL.PJTLIN_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PIN.Cce3);
@@ -166,6 +168,7 @@ namespace VipcoSageX3.Controllers.SageX3
                 #endregion Sort
 
                 #region Query
+
                 // Query mulitple command
                 sQuery = $@"SELECT	PIN.NUM_0 AS [DocumentNo],
                                     PIN.ACCDAT_0 AS [AccountDate],
@@ -188,22 +191,22 @@ namespace VipcoSageX3.Controllers.SageX3
                                     BPSL.ZISSUEDBY_0 AS [Issued],
                                     (SELECT T.BPSNAM_0 FROM VIPCO.BPSUPPLIER T WHERE T.BPSNUM_0 = BPSL.ZISSUEDBY_0) AS [Title],
                                     BPSL.ZTAXINVNO_0 AS [TaxinvNo]
-                            FROM	VIPCO.PINVOICE AS PIN 
+                            FROM	VIPCO.PINVOICE AS PIN
                                     LEFT OUTER JOIN VIPCO.BPSINVLIG AS BPSL
                                         ON PIN.NUM_0 = BPSL.NUM_0
                                     LEFT OUTER JOIN VIPCO.BPSINVLIGA AS BPSA
-                                        ON BPSL.NUM_0 = BPSA.NUM_0 
+                                        ON BPSL.NUM_0 = BPSA.NUM_0
                                         AND BPSL.LIG_0 = BPSA.LIG_0
                             {sWhere}
                             ORDER BY    {sSort}
                             OFFSET      @Skip ROWS       -- skip 10 rows
                             FETCH NEXT  @Take ROWS ONLY; -- take 10 rows;
                             SELECT	    COUNT(*)
-                            FROM	    VIPCO.PINVOICE AS PIN 
+                            FROM	    VIPCO.PINVOICE AS PIN
                                         LEFT OUTER JOIN VIPCO.BPSINVLIG AS BPSL
                                             ON PIN.NUM_0 = BPSL.NUM_0
                                         LEFT OUTER JOIN VIPCO.BPSINVLIGA AS BPSA
-                                            ON BPSL.NUM_0 = BPSA.NUM_0 
+                                            ON BPSL.NUM_0 = BPSA.NUM_0
                                             AND BPSL.LIG_0 = BPSA.LIG_0
                             {sWhere};";
 
@@ -242,11 +245,14 @@ namespace VipcoSageX3.Controllers.SageX3
                                                         OR LOWER(GAC.JOU_0 ) LIKE '%{keyword}%')";
                 }
 
+                if (!string.IsNullOrEmpty(scroll.WhereProject))
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"LOWER(GAA.CCE_2) LIKE '%{scroll.WhereProject.ToLower()}%'";
+                
                 if (scroll.SDate.HasValue)
-                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"GAC.ACCDAT_0 >= '{scroll.SDate.Value.AddHours(7).ToString("yyyy-MM-dd")}'";
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"GAC.ACCDAT_0 >= '{scroll.SDate.Value.ToString("yyyy-MM-dd")}'";
 
                 if (scroll.EDate.HasValue)
-                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"GAC.ACCDAT_0 <= '{scroll.EDate.Value.AddHours(7).ToString("yyyy-MM-dd")}'";
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"GAC.ACCDAT_0 <= '{scroll.EDate.Value.ToString("yyyy-MM-dd")}'";
 
                 #endregion Where
 
@@ -295,18 +301,21 @@ namespace VipcoSageX3.Controllers.SageX3
                         else
                             sSort = $"GAA.CCE_2 ASC";//QueryData = QueryData.OrderBy(x => x.PIN.Cce1);
                         break;
+
                     case "Branch":
                         if (scroll.SortOrder == -1)
                             sSort = $"GAA.CCE_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PIN.Cce1);
                         else
                             sSort = $"GAA.CCE_0 ASC";//QueryData = QueryData.OrderBy(x => x.PIN.Cce1);
                         break;
+
                     case "Bom":
                         if (scroll.SortOrder == -1)
                             sSort = $"GAA.CCE_1 DESC";//QueryData = QueryData.OrderByDescending(x => x.PIN.Cce1);
                         else
                             sSort = $"GAA.CCE_1 ASC";//QueryData = QueryData.OrderBy(x => x.PIN.Cce1);
                         break;
+
                     case "WorkGroup":
                         if (scroll.SortOrder == -1)
                             sSort = $"GAA.CCE_3 DESC";//QueryData = QueryData.OrderByDescending(x => x.PIN.Cce3);
@@ -322,6 +331,7 @@ namespace VipcoSageX3.Controllers.SageX3
                 #endregion Sort
 
                 #region Query
+
                 // Query mulitple command
                 sQuery = $@"SELECT	GAC.NUM_0 AS [DocumentNo],
                                     GAC.ACCDAT_0 AS [Date],
@@ -329,12 +339,12 @@ namespace VipcoSageX3.Controllers.SageX3
                                     GAC.JOU_0 AS [Journal],
                                     GAD.FCYLIN_0 AS [Site],
                                     GAD.ACC_0 AS [Account],
-                                    (CASE 
-                                        WHEN GAD.SNS_0 > 0 
+                                    (CASE
+                                        WHEN GAD.SNS_0 > 0
                                             THEN GAD.AMTCUR_0
                                     END) AS [Debit],
-                                    (CASE 
-                                        WHEN GAD.SNS_0 < 0 
+                                    (CASE
+                                        WHEN GAD.SNS_0 < 0
                                             THEN GAD.AMTCUR_0
                                     END) AS [Credit],
                                     GAD.DES_0 AS [Description],
@@ -347,7 +357,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                     GAD.TAX_0 AS [Tax]
                             FROM	VIPCO.GACCENTRY AS GAC
                                     LEFT OUTER JOIN VIPCO.GACCENTRYD AS GAD
-                                        ON GAC.NUM_0 = GAD.NUM_0 
+                                        ON GAC.NUM_0 = GAD.NUM_0
                                     LEFT OUTER JOIN VIPCO.GACCENTRYA AS GAA
                                         ON GAC.NUM_0 = GAA.NUM_0
                                         AND GAD.TYP_0 = GAA.TYP_0
@@ -360,7 +370,7 @@ namespace VipcoSageX3.Controllers.SageX3
                             SELECT	    COUNT(*)
                             FROM	    VIPCO.GACCENTRY AS GAC
                                         LEFT OUTER JOIN VIPCO.GACCENTRYD AS GAD
-                                            ON GAC.NUM_0 = GAD.NUM_0 
+                                            ON GAC.NUM_0 = GAD.NUM_0
                                         LEFT OUTER JOIN VIPCO.GACCENTRYA AS GAA
                                             ON GAC.NUM_0 = GAA.NUM_0
                                             AND GAD.TYP_0 = GAA.TYP_0
@@ -379,7 +389,167 @@ namespace VipcoSageX3.Controllers.SageX3
             return null;
         }
 
+        private async Task<List<InvoiceOutStandingViewModel>> GetDataInvoiceOutStanding(ScrollViewModel Scroll, bool option = false)
+        {
+            if (Scroll != null)
+            {
+                // ACC_0 ลูกหนี้ในประเทศ 113101 และ ลูกหนี้ต่างประเทศ 113201
+                string sWhere = "GAC.FLGCLE_0 = 1 AND GAD.ACC_0 IN ('113101','113201')";
+                string sSort = "";
 
+                #region Where
+
+                // Filter
+                var filters = string.IsNullOrEmpty(Scroll.Filter) ? new string[] { "" }
+                                    : Scroll.Filter.Split(null);
+
+                foreach (string temp in filters)
+                {
+                    if (string.IsNullOrEmpty(temp))
+                        continue;
+
+                    string keyword = temp.ToLower();
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") +
+                                                    $@"(LOWER(GAD.NUM_0) LIKE '%{keyword}%'
+                                                        OR LOWER(BPC.BPCNAM_0) LIKE '%{keyword}%')";
+                }
+
+                // Where Customer
+                if (Scroll.WhereBanks.Any())
+                {
+                    var list = new List<string>();
+
+                    foreach (var item in Scroll.WhereBanks)
+                        list.Add($"'{item}'");
+
+                    var customers = string.Join(',', list);
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"BPC.BPCNUM_0 IN ({customers})";
+                }
+
+                // Where Project
+                if (!string.IsNullOrEmpty(Scroll.WhereProject))
+                {
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"SIND.PJT_0 = '{Scroll.WhereProject}'";
+                }
+
+                #endregion
+
+                #region Sort
+
+                switch (Scroll.SortField)
+                {
+                    case "InvoiceNo":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"GAD.NUM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pshnum0);
+                        else
+                            sSort = $"GAD.NUM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pshnum0);
+                        break;
+
+                    case "CustomerNo":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"BPC.BPCNUM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pjth0);
+                        else
+                            sSort = $"BPC.BPCNUM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pjth0);
+                        break;
+
+                    case "CustomerName":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"BPC.BPCNAM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"BPC.BPCNAM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Project":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"SIND.PJT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"SIND.PJT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "DocDateString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"GAC.DUDDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"GAC.DUDDAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "DueDateString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"GAH.BPRDATVCR_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"GAH.BPRDATVCR_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    default:
+                        sSort = $"GAD.NUM_0 ASC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        break;
+                }
+
+                #endregion
+
+                var sqlCommnad = new SqlCommandViewModel()
+                {
+                    SelectCommand = $@"	GAD.NUM_0 AS InvoiceNo,
+                                        SIND.NETPRIATI_0 * SIND.QTY_0 AS InvPriceInTax,
+                                        SIND.NETPRINOT_0 * SIND.QTY_0 AS InvPriceExTax,
+                                        GAH.CUR_0 AS Currency,
+                                        BPC.BPCNUM_0 AS CustomerNo,
+                                        BPC.ZCOMPNAME_0 AS CustomerName,
+                                        SIND.PJT_0 AS Project,
+                                        GAC.FLGCLE_0 AS StatusClose,
+                                        (CASE 
+                                            WHEN GAH.CUR_0 = 'THB' 
+                                                    THEN SIND.NETPRIATI_0 * SIND.QTY_0
+                                            END) AS [THB_TAX],
+                                        (CASE 
+                                            WHEN GAH.CUR_0 = 'USD' 
+                                                    THEN SIND.NETPRIATI_0 * SIND.QTY_0
+                                            END) AS [USD_TAX],
+                                        (CASE 
+                                            WHEN GAH.CUR_0 = 'EUR' OR GAH.CUR_0 = 'GBP' 
+                                                    THEN SIND.NETPRIATI_0 * SIND.QTY_0
+                                            END) AS [EUR_TAX],
+                                        (CASE 
+                                            WHEN GAH.CUR_0 = 'THB' 
+                                                    THEN SIND.NETPRINOT_0 * SIND.QTY_0
+                                            END) AS [THB],
+                                        (CASE 
+                                            WHEN GAH.CUR_0 = 'USD' 
+                                                    THEN SIND.NETPRINOT_0 * SIND.QTY_0
+                                            END) AS [USD],
+                                        (CASE 
+                                            WHEN GAH.CUR_0 = 'EUR' OR GAH.CUR_0 = 'GBP' 
+                                                    THEN SIND.NETPRINOT_0 * SIND.QTY_0
+                                            END) AS [EUR],
+                                        GAC.DUDDAT_0 AS DueDate,
+                                        GAH.BPRDATVCR_0 AS DocDate,
+                                        SYSDATETIME() AS NowDate,
+                                        DATEDIFF(DAY,SYSDATETIME(),GAC.DUDDAT_0 ) AS DIFF",
+                    FromCommand = $@" VIPCO.GACCENTRYD GAD
+                                    LEFT OUTER JOIN VIPCO.GACCENTRY GAH
+                                            ON GAD.NUM_0 = GAH.NUM_0
+                                            AND GAD.TYP_0 = GAH.TYP_0
+                                    LEFT OUTER JOIN VIPCO.GACCDUDATE GAC
+                                            ON GAD.ACCNUM_0 = GAC.ACCNUM_0
+                                            AND GAD.TYP_0 = GAC.TYP_0 
+                                            AND GAD.LIN_0 = GAC.LIG_0
+                                    LEFT OUTER JOIN VIPCO.BPCUSTOMER BPC
+                                            ON GAD.BPR_0 = BPC.BPCNUM_0
+                                    LEFT OUTER JOIN VIPCO.SINVOICED SIND
+                                            ON SIND.NUM_0 = GAC.NUM_0
+                                            AND SIND.SIDLIN_0 = (GAC.LIG_0 * 1000)",
+                    WhereCommand = sWhere,
+                    OrderCommand = sSort
+                };
+
+                var result = await this.repositoryInvOutStand.GetEntitiesAndTotal(sqlCommnad, new { Skip = Scroll.Skip ?? 0, Take = Scroll.Take ?? 50 });
+                var dbData = result.Entities;
+                Scroll.TotalRow = result.TotalRow;
+
+                return dbData;
+            }
+            return null;
+        }
         // POST: api/Invoice/GetScroll
         [HttpPost("GetScroll")]
         public async Task<IActionResult> GetScroll([FromBody] ScrollViewModel Scroll)
@@ -424,7 +594,7 @@ namespace VipcoSageX3.Controllers.SageX3
                         if (value is DateTime || value is double || value is int)
                             continue;
 
-                        table.Columns.Add(field.Name.Replace("String",""), typeof(string));
+                        table.Columns.Add(field.Name.Replace("String", ""), typeof(string));
                     }
 
                     //Adding the Rows
@@ -465,8 +635,6 @@ namespace VipcoSageX3.Controllers.SageX3
             return BadRequest(new { Error = Message });
         }
 
-
-
         // POST: api/Invoice/GetScroll
         [HttpPost("JournalGetScroll")]
         public async Task<IActionResult> JournalGetScroll([FromBody] ScrollViewModel Scroll)
@@ -484,7 +652,7 @@ namespace VipcoSageX3.Controllers.SageX3
             {
                 Message = $"{ex.ToString()}";
             }
-            return BadRequest();
+            return BadRequest( new { Message });
         }
 
         // POST: api/Invoice/GetReport
@@ -540,6 +708,107 @@ namespace VipcoSageX3.Controllers.SageX3
                     var file = this.helperService.CreateExcelFile(table, "SupplierBPInvoice");
                     return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Journal.xlsx");
                 }
+            }
+            catch (Exception ex)
+            {
+                Message = $"Has error{ex.ToString()}";
+            }
+            return BadRequest(new { Error = Message });
+        }
+
+        [HttpPost("InvoiceOutStandingGetScroll")]
+        public async Task<IActionResult> InvoiceOutStandingGetScroll([FromBody] ScrollViewModel Scroll)
+        {
+            var message = "Data not been found.";
+            try
+            {
+                var MapDatas = await this.GetDataInvoiceOutStanding(Scroll);
+
+                foreach (var item in MapDatas)
+                    item.InvoiceStatus = item.DIFF > 0 ? InvoiceStatus.OutStanding : InvoiceStatus.OverDue;
+
+                return new JsonResult(new ScrollDataViewModel<InvoiceOutStandingViewModel>(Scroll, MapDatas), this.DefaultJsonSettings);
+            }
+            catch(Exception ex)
+            {
+                message = $"Has error {ex.ToString()}";
+            }
+            return BadRequest(new { message });
+        }
+
+        // POST: api/Invoice/GetReport
+        [HttpPost("InvoiceOutStandingGetReport")]
+        public async Task<IActionResult> InvoiceOutStandingGetReport([FromBody] ScrollViewModel Scroll)
+        {
+            var Message = "Data not been found.";
+            try
+            {
+                if (Scroll != null)
+                {
+                    var MapDatas = await this.GetDataInvoiceOutStanding(Scroll);
+
+                    foreach (var item in MapDatas)
+                        item.InvoiceStatus = item.DIFF > 0 ? InvoiceStatus.OutStanding : InvoiceStatus.OverDue;
+
+                    if (MapDatas.Any())
+                    {
+                        var table = new DataTable();
+                        //Adding the Columns
+                        foreach (var field in MapDatas[0].GetType().GetProperties()) // Loop through fields
+                        {
+                            string name = field.Name; // Get string name
+                            var value = field.GetValue(MapDatas[0], null);
+
+                            if (value is DateTime || value is double || 
+                                value is int || value is InvoiceStatus || 
+                                name == "InvoiceStatus")
+                                continue;
+
+                            if (name == "InvoiceStatusString")
+                            {
+                                var Col = table.Columns.Add(field.Name.Replace("String", ""), typeof(string));
+                                Col.SetOrdinal(0);
+                            }
+                            else
+                            {
+                                var newName = field.Name.Replace("String", "");
+                                var columns = table.Columns;
+                                if (!columns.Contains(newName))
+                                    table.Columns.Add(newName, typeof(string));
+                            }
+                        }
+
+                        //Adding the Rows
+                        // Table1
+                        foreach (var item in MapDatas)
+                        {
+                            table.Rows.Add(
+                                item.InvoiceStatusString,
+                                item.InvoiceNo,
+                                item.InvPriceInTaxString,
+                                item.InvPriceExTaxString,
+                                item.Currency,
+                                item.CustomerNo,
+                                item.CustomerName,
+                                item.Project,
+                                item.THB_TAXString,
+                                item.USD_TAXString,
+                                item.EUR_TAXString,
+                                item.THBString,
+                                item.USDString,
+                                item.EURString,
+                                item.DueDateString,
+                                item.DocDateString,
+                                item.NowDateString,
+                                item.DIFFString);
+                        }
+
+                        var file = this.helperService.CreateExcelFilePivotTables(table, "InvoiceOutStandingOverDue", "InvoiceOutStandingOverDuePivot");
+                        return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "OutStandingOverDue.xlsx");
+                    }
+
+                }
+                   
             }
             catch (Exception ex)
             {

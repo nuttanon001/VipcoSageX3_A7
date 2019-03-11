@@ -11,6 +11,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CustomMaterialModule } from '../shared/customer-material.module';
 import { InvoiceSupBpComponent } from './invoice-sup-bp/invoice-sup-bp.component';
 import { Journal2Component } from './journal2/journal2.component';
+import { InvoiceOutDueComponent } from './invoice-out-due/invoice-out-due.component';
 
 @NgModule({
   imports: [
@@ -25,7 +26,8 @@ import { Journal2Component } from './journal2/journal2.component';
     IssueTableComponent,
     JournalTableComponent,
     InvoiceSupBpComponent,
-    Journal2Component
+    Journal2Component,
+    InvoiceOutDueComponent
   ],
   providers: [
     MiscService

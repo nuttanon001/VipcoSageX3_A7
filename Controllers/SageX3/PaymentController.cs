@@ -102,16 +102,14 @@ namespace VipcoSageX3.Controllers.SageX3
 
                 if (scroll.SDate.HasValue)
                 {
-                    scroll.SDate = scroll.SDate.Value.AddHours(7);
                     sWhere +=
-                       (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PAYM.ACCDAT_0 >= '{scroll.SDate.Value.AddHours(7).ToString("yyyy-MM-dd")}'";
+                       (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PAYM.ACCDAT_0 >= '{scroll.SDate.Value.ToString("yyyy-MM-dd")}'";
                 }
 
                 if (scroll.EDate.HasValue)
                 {
-                    scroll.EDate = scroll.EDate.Value.AddHours(7);
                     sWhere +=
-                       (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PAYM.ACCDAT_0 <= '{scroll.EDate.Value.AddHours(7).ToString("yyyy-MM-dd")}'";
+                       (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PAYM.ACCDAT_0 <= '{scroll.EDate.Value.ToString("yyyy-MM-dd")}'";
                 }
                
 

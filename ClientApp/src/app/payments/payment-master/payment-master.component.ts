@@ -13,6 +13,7 @@ import { Bank } from '../../dimension-datas/shared/bank.model';
 import { AuthService } from '../../core/auth/auth.service';
 import { PaymentService } from '../shared/payment.service';
 import { DialogsService } from '../../dialogs/shared/dialogs.service';
+import { Supplier } from 'src/app/dimension-datas/shared/supplier.model';
 
 @Component({
   selector: 'app-payment-master',
@@ -129,7 +130,7 @@ export class PaymentMasterComponent extends BaseScheduleComponent<Payment,Paymen
           });
       } else if (type === "Supplier") {
         this.serviceDialogs.dialogSelectSupplier(this.viewCon)
-          .subscribe(sub => {
+          .subscribe((sub:Supplier) => {
             this.needReset = true;
             this.reportForm.patchValue({
               WhereSupplier: sub ? sub.SupplierNo : undefined,

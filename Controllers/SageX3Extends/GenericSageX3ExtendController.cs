@@ -81,7 +81,7 @@ namespace VipcoSageX3.Controllers.SageX3Extends
             if (record == null)
                 return BadRequest();
             // +7 Hour
-            record = this.helperService.AddHourMethod(record);
+            // record = this.helperService.AddHourMethod(record);
 
             if (record.GetType().GetProperty("CreateDate") != null)
                 record.GetType().GetProperty("CreateDate").SetValue(record, DateTime.Now);
@@ -99,7 +99,7 @@ namespace VipcoSageX3.Controllers.SageX3Extends
                 return BadRequest();
 
             // +7 Hour
-            record = this.helperService.AddHourMethod(record);
+            // record = this.helperService.AddHourMethod(record);
 
             // Set date for CrateDate Entity
             if (record.GetType().GetProperty("ModifyDate") != null)

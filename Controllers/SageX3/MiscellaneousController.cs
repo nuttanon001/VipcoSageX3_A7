@@ -72,11 +72,11 @@ namespace VipcoSageX3.Controllers.SageX3
 
                 if (scroll.SDate.HasValue)
                     sWhere +=
-                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"SMH.IPTDAT_0 >= '{scroll.SDate.Value.AddHours(7).ToString("yyyy-MM-dd")}'";
+                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"SMH.IPTDAT_0 >= '{scroll.SDate.Value.ToString("yyyy-MM-dd")}'";
 
                 if (scroll.EDate.HasValue)
                     sWhere +=
-                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"SMH.IPTDAT_0 <= '{scroll.EDate.Value.AddHours(7).ToString("yyyy-MM-dd")}'";
+                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"SMH.IPTDAT_0 <= '{scroll.EDate.Value.ToString("yyyy-MM-dd")}'";
 
                 #endregion Where
 

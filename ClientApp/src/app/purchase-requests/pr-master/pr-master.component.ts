@@ -109,6 +109,7 @@ export class PrMasterComponent extends BaseScheduleComponent<PrAndPo,PrService> 
           { field: 'Branch', header: 'Branch', canSort: true, width: width150, type: ColumnType.PurchaseRequest },
           { field: 'WorkItemName', header: 'BomLv', canSort: true, width: width250, type: ColumnType.PurchaseRequest },
           { field: 'WorkGroupName', header: 'WorkGroup', canSort: true, width: width250, type: ColumnType.PurchaseRequest },
+          { field: 'PROther', header: 'Other', width: width150, type: ColumnType.PurchaseRequest },
           { field: 'QuantityPur', header: 'Qty.', width: width100, type: ColumnType.PurchaseRequest },
           { field: 'PrWeightString', header: 'Weight', width: width100, type: ColumnType.PurchaseRequest },
           

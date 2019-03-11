@@ -32,6 +32,10 @@ namespace VipcoSageX3.ViewModels
         /// </summary>
         public int? PrLine { get; set; }
         /// <summary>
+        /// PREQUISD.ZPR11
+        /// </summary>
+        public string PROther { get; set; }
+        /// <summary>
         /// PREQUISD.ITMREF
         /// </summary>
         public string ItemCode { get; set; }

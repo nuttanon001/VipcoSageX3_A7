@@ -21,6 +21,10 @@ namespace VipcoSageX3.Services.EmailServices
             };
 
             email.MailTos.ForEach(item => mailMessage.To.Add(item));
+
+            if (email.HasAttach.HasValue && email.HasAttach.Value)
+                mailMessage.Attachments.Add(email.Attachment);
+
             return mailMessage;
         }
     }

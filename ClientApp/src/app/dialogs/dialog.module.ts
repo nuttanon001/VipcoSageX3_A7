@@ -32,6 +32,8 @@ import { CategoryDialogComponent } from './category-dialog/category-dialog.compo
 import { CategoryTableDialogComponent } from './category-dialog/category-table-dialog/category-table-dialog.component';
 import { EmployeeDialogComponent } from './employee-dialog/employee-dialog.component';
 import { EmployeeTableDialogComponent } from './employee-dialog/employee-table-dialog/employee-table-dialog.component';
+import { CustomerDialogComponent } from './customer-dialog/customer-dialog.component';
+import { CustomerTableDialogComponent } from './customer-dialog/customer-table-dialog/customer-table-dialog.component';
 
 @NgModule({
   imports: [
@@ -63,6 +65,8 @@ import { EmployeeTableDialogComponent } from './employee-dialog/employee-table-d
     CategoryTableDialogComponent,
     EmployeeDialogComponent,
     EmployeeTableDialogComponent,
+    CustomerDialogComponent,
+    CustomerTableDialogComponent,
   ],
   providers: [
     DialogsService,
@@ -87,6 +91,8 @@ import { EmployeeTableDialogComponent } from './employee-dialog/employee-table-d
     CategoryTableDialogComponent,
     EmployeeDialogComponent,
     EmployeeTableDialogComponent,
+    CustomerDialogComponent,
+    CustomerTableDialogComponent,
   ],
 })
 export class DialogsModule { }

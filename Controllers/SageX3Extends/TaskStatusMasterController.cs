@@ -115,7 +115,7 @@ namespace VipcoSageX3.Controllers.SageX3Extends
             {
                 if (record != null)
                 {
-                    record = this.helperService.AddHourMethod(record);
+                    // record = this.helperService.AddHourMethod(record);
 
                     if (record.GetType().GetProperty("CreateDate") != null)
                         record.GetType().GetProperty("CreateDate").SetValue(record, DateTime.Now);
@@ -152,7 +152,7 @@ namespace VipcoSageX3.Controllers.SageX3Extends
                 if (key > 0 && record != null)
                 {
                     // +7 Hour
-                    record = this.helperService.AddHourMethod(record);
+                    // record = this.helperService.AddHourMethod(record);
 
                     // Set date for CrateDate Entity
                     if (record.GetType().GetProperty("ModifyDate") != null)
@@ -213,6 +213,37 @@ namespace VipcoSageX3.Controllers.SageX3Extends
             {
                 message = $"Has error {ex.ToString()}";
             }
+            return BadRequest(new { message });
+        }
+
+        // DELETE: api/TaskStatusMaster/
+        [HttpDelete()]
+        public override async Task<IActionResult> Delete(int key)
+        {
+            var message = "Data not been found.";
+            try
+            {
+                if (key > 0)
+                {
+                    var details = await this.repositoryDetail.
+                        GetToListAsync(x => x.TaskStatusDetailId, x => x.TaskStatusMasterId == key);
+
+                    if (details.Any())
+                    {
+                        foreach (var item in details.ToList())
+                            await this.repositoryDetail.DeleteAsync(item);
+                    }
+
+                    if (await this.repository.DeleteAsync(key) == 0)
+                        return BadRequest();
+                }
+                return NoContent();
+            }
+            catch(Exception ex)
+            {
+                message = $"Has error {ex.ToString()}";
+            }
+
             return BadRequest(new { message });
         }
     }

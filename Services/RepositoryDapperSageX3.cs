@@ -225,6 +225,103 @@ namespace VipcoSageX3.Services
             }
         }
 
+        /*
+        public async Task<ReturnViewModel<Entity>> GetEntitiesAndTotal<Parameter>(SqlCommandViewModel sqlCommand, Parameter parameter, int timeout = 60)
+        {
+            string sSqlCommand = $@"SELECT {sqlCommand.SelectCommand}
+                                    FROM {sqlCommand.FromCommand}
+                                    WHERE {sqlCommand.WhereCommand} ";
+
+            if (!string.IsNullOrEmpty(sqlCommand.GroupCommand))
+                sSqlCommand += $@"GROUP BY {sqlCommand.GroupCommand} ";
+
+            if (!string.IsNullOrEmpty(sqlCommand.OrderCommand))
+                sSqlCommand += $@"ORDER BY {sqlCommand.OrderCommand} ";
+
+            sSqlCommand += $@"OFFSET @Skip ROWS       -- skip 10 rows
+                                FETCH NEXT @Take ROWS ONLY; -- take 10 rows; 
+                                SELECT COUNT(*)
+                                FROM {sqlCommand.FromCommand}  
+                                WHERE {sqlCommand.WhereCommand};";
+
+            using (IDbConnection conn = Connection)
+            {
+                conn.Open();
+                var result = await conn.QueryMultipleAsync(sSqlCommand, parameter, commandTimeout: timeout);
+                var dbData = new ReturnViewModel<Entity>()
+                {
+                    Entities = result.Read<Entity>().ToList(),
+                    TotalRow = result.Read<int>().FirstOrDefault()
+                };
+                conn.Close();
+                return dbData;
+            }
+        }
+        */
+
+        public async Task<ReturnViewModel<Entity>> GetEntitiesAndTotal<Parameter>(SqlCommandViewModel sqlCommand, Parameter parameter, int timeout = 60)
+        {
+            string sSqlCommand = $@"SELECT {sqlCommand.SelectCommand}
+                                    FROM {sqlCommand.FromCommand} ";
+
+            if (!string.IsNullOrEmpty(sqlCommand.WhereCommand))
+                sSqlCommand += $@"WHERE {sqlCommand.WhereCommand} ";
+
+            if (!string.IsNullOrEmpty(sqlCommand.GroupCommand))
+                sSqlCommand += $@"GROUP BY {sqlCommand.GroupCommand} ";
+
+            if (!string.IsNullOrEmpty(sqlCommand.OrderCommand))
+                sSqlCommand += $@"ORDER BY {sqlCommand.OrderCommand} ";
+
+            sSqlCommand += $@"OFFSET @Skip ROWS
+                              FETCH NEXT @Take ROWS ONLY;";
+
+            // Query Total Record
+            var sSubSqlCommand = $@"SELECT COUNT(*)
+                                    FROM {sqlCommand.FromCommand} ";
+
+            if (!string.IsNullOrEmpty(sqlCommand.WhereCommand))
+                sSubSqlCommand += $@"WHERE {sqlCommand.WhereCommand};";
+
+            sSqlCommand += sSubSqlCommand;
+
+            using (IDbConnection conn = Connection)
+            {
+                conn.Open();
+                var result = await conn.QueryMultipleAsync(sSqlCommand, parameter, commandTimeout: timeout);
+                var dbData = new ReturnViewModel<Entity>()
+                {
+                    Entities = result.Read<Entity>().ToList(),
+                    TotalRow = result.Read<int>().FirstOrDefault()
+                };
+                conn.Close();
+                return dbData;
+            }
+        }
+
+        public async Task<List<Entity>> GetEntities(SqlCommandViewModel sqlCommand, int timeout = 60)
+        {
+            string sSqlCommand = $@"SELECT {sqlCommand.SelectCommand}
+                                    FROM {sqlCommand.FromCommand} ";
+
+            if (!string.IsNullOrEmpty(sqlCommand.WhereCommand))
+                sSqlCommand += $@"WHERE {sqlCommand.WhereCommand} ";
+
+            if (!string.IsNullOrEmpty(sqlCommand.GroupCommand))
+                sSqlCommand += $@"GROUP BY {sqlCommand.GroupCommand} ";
+
+            if (!string.IsNullOrEmpty(sqlCommand.OrderCommand))
+                sSqlCommand += $@"ORDER BY {sqlCommand.OrderCommand} ";
+
+            using (IDbConnection conn = Connection)
+            {
+                conn.Open();
+                var result = await conn.QueryAsync<Entity>(sSqlCommand, commandTimeout: timeout);
+                conn.Close();
+                return result.ToList();
+            }
+        }
+
         public async Task<List<Entity>> GetListEntites<Parameter>(string SqlCommand, Parameter parameter, int timeout = 60)
         {
             using (IDbConnection conn = Connection)

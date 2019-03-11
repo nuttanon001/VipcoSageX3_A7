@@ -6,6 +6,7 @@ export interface MyColumn {
   type?: ColumnType;
   colspan?: number;
   rowspan?: number;
+  canSort?: boolean;
 }
 
 export enum ColumnType {

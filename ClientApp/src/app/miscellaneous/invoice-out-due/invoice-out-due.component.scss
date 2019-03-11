@@ -1,0 +1,64 @@
+@import "../../shared/styles/master.style.scss";
+@import "../../shared/styles/info.style.scss";
+
+@mixin block-master {
+  text-align: center;
+  color: darkslateblue !important;
+}
+
+/* Structure */
+.master-container {
+  height: $master-vh;
+  width: $master-vw;
+  display: flex;
+  flex-flow: column;
+}
+
+.master-container > div {
+  flex: 1 100%;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  flex-flow: row wrap;
+  text-align: center;
+
+  mat-form-field {
+    width: 200px;
+    min-height: 50px;
+    margin: 5px;
+  }
+}
+
+:host /deep/ .ui-widget {
+  font-family: "Roboto", "Trebuchet MS", Arial, Helvetica, sans-serif;
+  font-size: 0.8em;
+}
+
+:host /deep/ .ui-paginator .ui-dropdown .ui-dropdown-label {
+  font-family: "Roboto", "Trebuchet MS", Arial, Helvetica, sans-serif;
+  font-size: 0.8em;
+}
+
+.detail {
+  max-height: 90%;
+  align-items: flex-start;
+  align-self: flex-start;
+}
+
+.PoHeader {
+  background-color: mediumseagreen !important;
+  @include block-master;
+}
+
+.PrHeader {
+  background-color: gold !important;
+  font-size: 1em !important;
+  @include block-master;
+}
+
+.RcHeader {
+  background-color: lightblue !important;
+  @include block-master;
+}

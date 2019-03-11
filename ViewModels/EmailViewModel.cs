@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net.Mail;
 
 namespace VipcoSageX3.ViewModels
 {
@@ -9,5 +10,7 @@ namespace VipcoSageX3.ViewModels
         public List<string> MailTos { get; set; }
         public string Message { get; set; }
         public string Subject { get; set; }
+        public bool? HasAttach { get; set; }
+        public Attachment Attachment { get; set; }
     }
 }
