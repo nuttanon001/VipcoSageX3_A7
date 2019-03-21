@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BaseRestService } from 'src/app/shared2/baseclases/base-rest.service';
-import { HttpClient } from '@angular/common/http';
 import { HttpErrorHandler } from 'src/app/shared2/baseclases/http-error-handler.service';
+import { HttpClient } from '@angular/common/http';
 import { TaskStatusMaster } from './task-status-master.model';
 
 @Injectable({

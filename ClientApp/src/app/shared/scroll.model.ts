@@ -11,10 +11,18 @@ export interface Scroll {
   WhereWorkItem?: string;
   WhereWorkGroup?: string;
   WhereProject?: string;
+  WhereProjects?: Array<string>;
   WhereBranch?: string;
+  WhereBranchs?: Array<string>;
   WhereBank?: string;
   WhereBanks?: Array<string>;
   WhereSupplier?: string;
-  SDate ?: Date;
-  EDate ?: Date;
+  WhereRange11?: string;
+  WhereRange12?: string;
+  WhereRange21?: string;
+  WhereRange22?: string;
+  SDate?: Date;
+  EDate?: Date;
+  SDate2?: Date;
+  EDate2?: Date;
 }

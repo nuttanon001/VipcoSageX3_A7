@@ -16,6 +16,8 @@ export interface MiscAccount {
   AccType?: string;
   AccCat?: number;
   AccIssue?: string;
+  DocDate?: Date;
+  DocDateString?: string;
   // Detail
   Issues?: Array<Issue>;
   Journals?: Array<Journal>;

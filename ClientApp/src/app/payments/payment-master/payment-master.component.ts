@@ -59,8 +59,6 @@ export class PaymentMasterComponent extends BaseScheduleComponent<Payment,Paymen
       return;
     }
 
-    console.log("onGetData");
-
     this.service.getAllWithScroll(schedule)
       .subscribe((dbData: ScrollData<Payment>) => {
         if (!dbData) {

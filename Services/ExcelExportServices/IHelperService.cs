@@ -16,6 +16,6 @@ namespace VipcoSageX3.Services.ExcelExportServices
 
         MemoryStream CreateExcelFileMuiltSheets(List<MuiltSheetViewModel> muiltSheets);
 
-        MemoryStream CreateExcelFilePivotTables(DataTable table, string sheetName, string pivotName = "");
+        MemoryStream CreateExcelFilePivotTables(DataTable table, string sheetName, string pivotName = "", bool hideData = true);
     }
 }

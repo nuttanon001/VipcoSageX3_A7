@@ -91,6 +91,7 @@ export class MiscMasterComponent extends BaseScheduleComponent<MiscAccount, Misc
 
           { field: 'AccNumber', header: 'JournalNo', width: 150, type: ColumnType.PurchaseOrder },
           { field: 'AccDateString', header: 'JournalDate', width: 175, type: ColumnType.PurchaseOrder },
+          { field: 'DocDateString', header: 'DocDate', width: 175, type: ColumnType.PurchaseOrder },
           { field: 'AccType', header: 'AccType', width: 150, type: ColumnType.PurchaseOrder },
           { field: 'AccIssue', header: 'AccRef', width: 150, type: ColumnType.PurchaseOrder },
 
@@ -151,7 +152,8 @@ export class MiscMasterComponent extends BaseScheduleComponent<MiscAccount, Misc
       // debug here
       // console.log(JSON.stringify(scorll));
 
-      if (!scorll.WhereProject && !scorll.Filter && !scorll.SDate && !scorll.EDate) {
+      if (!scorll.WhereProject && !scorll.Filter && !scorll.SDate && !scorll.EDate 
+          && !scorll.SDate2 && !scorll.EDate2) {
         this.serviceDialogs.error("Error Message", `Please select item project or filter befor export.`, this.viewCon);
         return;
       }

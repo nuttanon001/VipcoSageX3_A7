@@ -270,18 +270,18 @@ namespace VipcoSageX3.Services
             if (!string.IsNullOrEmpty(sqlCommand.GroupCommand))
                 sSqlCommand += $@"GROUP BY {sqlCommand.GroupCommand} ";
 
+            // Query Total Record Befor Order By
+            var sSubSqlCommand = $@"SELECT COUNT(*)
+                                    FROM ( {sSqlCommand} ) AS CountTable;";
+
             if (!string.IsNullOrEmpty(sqlCommand.OrderCommand))
                 sSqlCommand += $@"ORDER BY {sqlCommand.OrderCommand} ";
+
+           
 
             sSqlCommand += $@"OFFSET @Skip ROWS
                               FETCH NEXT @Take ROWS ONLY;";
 
-            // Query Total Record
-            var sSubSqlCommand = $@"SELECT COUNT(*)
-                                    FROM {sqlCommand.FromCommand} ";
-
-            if (!string.IsNullOrEmpty(sqlCommand.WhereCommand))
-                sSubSqlCommand += $@"WHERE {sqlCommand.WhereCommand};";
 
             sSqlCommand += sSubSqlCommand;
 

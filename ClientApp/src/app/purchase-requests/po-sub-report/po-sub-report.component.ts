@@ -34,9 +34,29 @@ export class PoSubReportComponent extends BaseScheduleComponent<PoSubReport, PrS
   }
 
   // Parameter
+  failLogin: boolean = false;
 
+  ngOnInit(): void {
+    this.buildForm();
+    if (!this.currentUser || this.currentUser.LevelUser < 2) {
+      if (!this.currentUser.SubLevel || this.currentUser.SubLevel < 2) {
+        this.serviceDialogs.error("Waining Message", "Access is restricted. please contact administrator !!!", this.viewCon).
+          subscribe(() => this.router.navigate(["login"]));
+      } else {
+        this.failLogin = true;
+      }
+    } else {
+      this.failLogin = true;
+    }
+
+    // this.failLogin = true;
+  }
   // get request data
   onGetData(schedule: Scroll): void {
+    if (!this.failLogin) {
+      return;
+    }
+
     this.service.getAllWithScroll(schedule, "SubReportGetScroll/")
       .subscribe((dbData: ScrollData<PoSubReport>) => {
         if (!dbData && !dbData.Data) {
@@ -137,7 +157,7 @@ export class PoSubReportComponent extends BaseScheduleComponent<PoSubReport, PrS
       this.loading = true;
       scorll.Skip = 0;
       scorll.Take = this.totalRecords;
-      this.service.getXlsx(scorll,"SubReportGetReport/").subscribe(data => {
+      this.service.getXlsx(scorll, "SubReportGetReport/").subscribe(data => {
         // console.log(data);
         this.loading = false;
       }, () => this.loading = false, () => this.loading = false);

@@ -11,6 +11,9 @@ import { StockOnhandService } from './shared/stock-onhand.service';
 import { StockOnhandCenterComponent } from './stock-onhand-center.component';
 import { StockOnhandMasterComponent } from './stock-onhand-master/stock-onhand-master.component';
 import { StockLocaltionTableComponent } from './stock-localtion-table/stock-localtion-table.component';
+import { Onhandmk2Component } from './onhandmk2/onhandmk2.component';
+import { StockBalanceComponent } from './stock-balance/stock-balance.component';
+import { IssusWorkgroupComponent } from './issus-workgroup/issus-workgroup.component';
 
 @NgModule({
   imports: [
@@ -22,7 +25,10 @@ import { StockLocaltionTableComponent } from './stock-localtion-table/stock-loca
   declarations: [
     StockOnhandCenterComponent,
     StockOnhandMasterComponent,
-    StockLocaltionTableComponent
+    StockLocaltionTableComponent,
+    Onhandmk2Component,
+    StockBalanceComponent,
+    IssusWorkgroupComponent
   ],
   providers: [
     StockOnhandService

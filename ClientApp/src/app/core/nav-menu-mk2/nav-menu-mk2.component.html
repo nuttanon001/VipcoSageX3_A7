@@ -1,0 +1,53 @@
+<ng-container *ngFor="let menuItem of modulesList">
+
+  <ng-container *ngIf="!menuItem.children">
+    <a class="nav-link" [routerLink]="[menuItem.link]">
+      <!--<span class="icon fa" [ngClass]="menuItem.icon"></span>-->
+      <mat-icon *ngIf="menuItem.icon">{{menuItem.icon}}</mat-icon>
+      <span class="text-holder">{{menuItem.label}}</span>
+    </a>
+  </ng-container>
+  <ng-container *ngIf="menuItem.children.length > 0">
+    <button #button mat-button [matMenuTriggerFor]="levelOne" #levelOneTrigger="matMenuTrigger"
+            (mouseenter)="buttonEnter(levelOneTrigger)" (mouseleave)="buttonLeave(levelOneTrigger, button)" style="z-index:1050">
+      <span class="icon fa" [ngClass]="menuItem.icon"></span>
+      <span style="color:lightcyan;font-size:medium;">
+        {{menuItem.label}}
+        <i class="fa fa-chevron-down"></i>
+      </span>
+    </button>
+
+    <mat-menu #levelOne="matMenu" direction="down" yPosition="below">
+      <span (mouseenter)="menuenter()" (mouseleave)="menuLeave(levelOneTrigger, button)">
+        <ng-container *ngFor="let childL1 of menuItem.children">
+          <li class="p-0" *ngIf="!childL1.children" mat-menu-item>
+            <a mat-menu-item [routerLink]="[childL1.link]">
+              <mat-icon *ngIf="childL1.icon">{{childL1.icon}}</mat-icon>
+              {{childL1.label}}
+            </a>
+          </li>
+          <ng-container *ngIf="childL1.children && childL1.children.length > 0">
+            <li mat-menu-item #levelTwoTrigger="matMenuTrigger" [matMenuTriggerFor]="levelTwo">
+              <span class="icon fa" [ngClass]="childL1.icon"></span>
+              <span>{{childL1.label}}</span>
+            </li>
+
+            <mat-menu #levelTwo="matMenu">
+              <span (mouseenter)="menu2enter()" (mouseleave)="menu2Leave(levelOneTrigger,levelTwoTrigger, button)">
+                <ng-container *ngFor="let childL2 of childL1.children">
+                  <li class="p-0" mat-menu-item>
+                    <a class="nav-link" [routerLink]="[childL2.link]">
+                      <mat-icon *ngIf="childL2.icon">{{childL2.icon}}</mat-icon>
+                      {{childL2.label}}
+                    </a>
+                  </li>
+                </ng-container>
+              </span>
+            </mat-menu>
+          </ng-container>
+        </ng-container>
+      </span>
+    </mat-menu>
+  </ng-container>
+
+</ng-container>

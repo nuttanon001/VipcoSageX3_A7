@@ -21,6 +21,7 @@ import { MessageService } from "./shared/message.service";
 import { HttpErrorHandler } from "./shared/http-error-handler.service";
 import { JwtInterceptorService } from './core/auth/jwt-interceptor.service';
 import { ErrorInterceptorService } from './core/auth/error-interceptor.service';
+import { NavMenuMk2Component } from './core/nav-menu-mk2/nav-menu-mk2.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { ErrorInterceptorService } from './core/auth/error-interceptor.service';
     NavMenuComponent,
     LoginComponent,
     RegisterComponent,
+    NavMenuMk2Component,
   ],
   imports: [
     // Angular Core
@@ -74,6 +76,11 @@ import { ErrorInterceptorService } from './core/auth/error-interceptor.service';
       {
         path: "task-status",
         loadChildren: "./task-status/task-status.module#TaskStatusModule",
+        canActivate: [AuthGuard]
+      },
+      {
+        path: "allowed-employee",
+        loadChildren: "./allowed-employees/allowed-employee.module#AllowedEmployeeModule",
         canActivate: [AuthGuard]
       },
       {

@@ -27,8 +27,8 @@ export class StockOnhandService extends BaseRestService<StockOnhand> {
     )
   }
 
-  getXlsx(scroll: Scroll): Observable<any> {
-    let url: string = this.baseUrl + "GetReport/";
+  getXlsx(scroll: Scroll, subReport : string = "GetReport/"): Observable<any> {
+    let url: string = this.baseUrl + subReport;
 
     return this.http.post(url, JSON.stringify(scroll), {
       headers: new HttpHeaders({

@@ -27,6 +27,8 @@ import { DialogInfo } from 'src/app/shared2/basemode/dialog-info.model';
 import { EmployeeDialogComponent } from '../employee-dialog/employee-dialog.component';
 import { Customer } from 'src/app/dimension-datas/shared/customer.model';
 import { CustomerDialogComponent } from '../customer-dialog/customer-dialog.component';
+import { Branch } from 'src/app/dimension-datas/shared/branch.model';
+import { BranchDialogComponent } from '../branch-dialog/branch-dialog.component';
 
 @Injectable()
 export class DialogsService {
@@ -104,7 +106,7 @@ export class DialogsService {
 * @param viewContainerRef
 * @param type = mode 0:fastSelected
 */
-  public dialogSelectProject(viewContainerRef: ViewContainerRef, type: number = 0): Observable<ProjectCode> {
+  public dialogSelectProject(viewContainerRef: ViewContainerRef, type: number = 0): Observable<ProjectCode|Array<ProjectCode>> {
     let dialogRef: MatDialogRef<JobDialogComponent>;
     let config: MatDialogConfig = new MatDialogConfig();
 
@@ -125,7 +127,7 @@ export class DialogsService {
 * @param viewContainerRef
 * @param type = mode 0:fastSelected
 */
-  public dialogSelectGroup(viewContainerRef: ViewContainerRef, type: number = 0): Observable<Workgroup> {
+  public dialogSelectGroup(viewContainerRef: ViewContainerRef, type: number = 0): Observable<Workgroup|Array<Workgroup>> {
     let dialogRef: MatDialogRef<GroupDialogComponent>;
     let config: MatDialogConfig = new MatDialogConfig();
 
@@ -159,6 +161,27 @@ export class DialogsService {
 
     // open dialog
     dialogRef = this.dialog.open(BankDialogComponent, config);
+    return dialogRef.afterClosed();
+  }
+
+  /**
+ * Branch
+ * @param viewContainerRef
+ * @param type = mode 0:fastSelected
+ */
+  public dialogSelectBranch(viewContainerRef: ViewContainerRef, type: number = 0): Observable<Branch | Array<Branch>> {
+    let dialogRef: MatDialogRef<BranchDialogComponent>;
+    let config: MatDialogConfig = new MatDialogConfig();
+
+    // config
+    config.viewContainerRef = viewContainerRef;
+    config.data = type;
+    // config.height = this.height;
+    // config.width= this.width;
+    config.hasBackdrop = true;
+
+    // open dialog
+    dialogRef = this.dialog.open(BranchDialogComponent, config);
     return dialogRef.afterClosed();
   }
 

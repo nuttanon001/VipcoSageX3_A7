@@ -14,6 +14,8 @@ using VipcoSageX3.Models.Machines;
 
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Newtonsoft.Json;
 
 namespace VipcoSageX3.Controllers
 {
@@ -25,14 +27,19 @@ namespace VipcoSageX3.Controllers
         #region PrivateMenbers
 
         private readonly IUserService userService;
+        private readonly IHostingEnvironment hostingEnv;
 
         #endregion PrivateMenbers
 
         #region Constructor
 
-        public UserController(IRepositoryMachine<User> repo,IUserService user, IMapper map) : base(repo, map, null)
+        public UserController(IRepositoryMachine<User> repo,
+            IHostingEnvironment hostingEnv,
+            IUserService user, IMapper map) : base(repo, map, null)
         {
             this.userService = user;
+            //Help
+            this.hostingEnv = hostingEnv;
         }
 
         #endregion
@@ -63,15 +70,18 @@ namespace VipcoSageX3.Controllers
             var Message = "Login has error.";
             try
             {
+                string contentRootPath = this.hostingEnv.ContentRootPath;
+
+                var allowedEmps = JsonConvert.DeserializeObject<List<AllowedEmployeeViewModel>>
+                    (await System.IO.File.ReadAllTextAsync(contentRootPath + "/Data/allowed_emp.json"));
+
                 var HasData = await this.userService.AuthenticateAsync(login.UserName, login.PassWord);
-                //var HasData = await this.repository.GetAllAsQueryable()
-                //                               .Include(x => x.EmpCodeNavigation)
-                //                               .FirstOrDefaultAsync(m => m.UserName.ToLower() == login.UserName.ToLower() &&
-                //                                                         m.PassWord.ToLower() == login.PassWord.ToLower());
+            
                 if (HasData != null)
                 {
-                    //For Demo
-                    //HasData.LevelUser = 2;
+                    var allowedEmp = allowedEmps.FirstOrDefault(x => x.EmpCode == HasData.EmpCode);
+                    if (allowedEmp != null)
+                        HasData.SubLevel = allowedEmp.SubLevel;
 
                     return new JsonResult(HasData, this.DefaultJsonSettings);
                 }

@@ -22,6 +22,9 @@ namespace VipcoSageX3.ViewModels
         public string AccType { get; set; }
         public byte? AccCat { get; set; }
         public string AccIssue { get; set; }
+        public DateTime? DocDate { get; set; }
+        public string DocDateString => this.DocDate == null ? "-" : this.DocDate.Value.ToString("dd/MM/yyyy");
+
         // Detail
         public ICollection<IssueViewModel> Issues { get; set; } = new List<IssueViewModel>();
         public ICollection<JournalViewModel> Journals { get; set; } = new List<JournalViewModel>();

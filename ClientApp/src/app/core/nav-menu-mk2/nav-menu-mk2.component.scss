@@ -1,0 +1,78 @@
+
+$bg-color: transparent;
+$font-color: black;
+
+
+.main-menu {
+  button {
+    color: lightcyan;
+    font-size: 12px;
+
+    &:hover {
+      color: $font-color;
+      background-color: $bg-color;
+    }
+
+    &:focus {
+      color: $font-color;
+      background-color: $bg-color;
+    }
+  }
+
+  a {
+    color: lightcyan;
+    cursor: pointer;
+
+    &:hover {
+      color: $font-color;
+      background-color: $bg-color;
+    }
+
+    .active {
+      background-color: $bg-color;
+    }
+
+    &:focus {
+      color: $font-color;
+      background-color: $bg-color;
+    }
+  }
+
+  span {
+    color: lightcyan;
+    cursor: pointer;
+
+    &:hover {
+      color: $font-color;
+      background-color: $bg-color;
+    }
+
+    .active {
+      background-color: $bg-color;
+    }
+
+    &:focus {
+      color: $font-color;
+      background-color: $bg-color;
+    }
+  }
+}
+
+a {
+  color: black;
+  cursor: pointer;
+
+  &:hover {
+    color: $font-color;
+    background-color: $bg-color;
+  }
+
+  .active {
+    background-color: $bg-color;
+  }
+
+  &:focus {
+    color: $font-color;
+    background-color: $bg-color;
+  }
+}

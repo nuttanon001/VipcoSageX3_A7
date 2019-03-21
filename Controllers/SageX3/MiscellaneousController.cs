@@ -78,6 +78,14 @@ namespace VipcoSageX3.Controllers.SageX3
                     sWhere +=
                         (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"SMH.IPTDAT_0 <= '{scroll.EDate.Value.ToString("yyyy-MM-dd")}'";
 
+                if (scroll.SDate2.HasValue)
+                    sWhere +=
+                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"ACH.BPRDATVCR_0 >= '{scroll.SDate2.Value.ToString("yyyy-MM-dd")}'";
+
+                if (scroll.EDate2.HasValue)
+                    sWhere +=
+                        (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"ACH.BPRDATVCR_0 <= '{scroll.EDate2.Value.ToString("yyyy-MM-dd")}'";
+
                 #endregion Where
 
                 #region Sort
@@ -97,6 +105,14 @@ namespace VipcoSageX3.Controllers.SageX3
                         else
                             sSort = $"SMH.IPTDAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.SMH.Pjth0);
                         break;
+
+                    case "DocDateString":
+                        if (scroll.SortOrder == -1)
+                            sSort = $"ACH.BPRDATVCR_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.SMH.Pjth0);
+                        else
+                            sSort = $"ACH.BPRDATVCR_0 ASC";//QueryData = QueryData.OrderBy(x => x.SMH.Pjth0);
+                        break;
+
 
                     case "ProjectCode":
                         if (scroll.SortOrder == -1)
@@ -151,7 +167,8 @@ namespace VipcoSageX3.Controllers.SageX3
                                         ACH.BPRVCR_0 AS [MiscLink],
                                         ACH.JOU_0 AS [AccType],
                                         ACH.CAT_0 AS [AccCat],
-                                        ACH.DESVCR_0 AS [AccIssue]
+                                        ACH.DESVCR_0 AS [AccIssue],
+                                        ACH.BPRDATVCR_0 AS [DocDate]
                             FROM	    VIPCO.SMVTH SMH
                                         INNER JOIN VIPCO.GACCENTRY ACH WITH(INDEX(GACCENTRY_ROWID))
                                             ON SMH.VCRNUM_0 = ACH.BPRVCR_0
@@ -321,6 +338,7 @@ namespace VipcoSageX3.Controllers.SageX3
                     {
                         new DataColumn("IssueNo", typeof(string)),
                         new DataColumn("IssueDate", typeof(string)),
+                        new DataColumn("DocumentDate", typeof(string)),
                         new DataColumn("Description",typeof(string)),
                         new DataColumn("Line",typeof(string)),
                         new DataColumn("Code",typeof(string)),
@@ -338,6 +356,7 @@ namespace VipcoSageX3.Controllers.SageX3
                         new DataColumn("IssueNo", typeof(string)),
                         new DataColumn("JournalNo", typeof(string)),
                         new DataColumn("JournalDate", typeof(string)),
+                        new DataColumn("DocumentDate", typeof(string)),
                         new DataColumn("AccType",typeof(string)),
                         new DataColumn("AccRef",typeof(string)),
                         new DataColumn("Line",typeof(string)),
@@ -376,6 +395,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                 table.Rows.Add(
                                   item2.MiscNumber,
                                   item2.MiscDateString,
+                                  item2.DocDateString,
                                   item2.Description,
                                   item3.Key.MiscLine,
                                   item3.Key.ItemCode,
@@ -402,6 +422,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                   item2.MiscLink,
                                   item2.AccNumber,
                                   item2.AccDateString,
+                                  item2.DocDateString,
                                   item2.AccType,
                                   item2.AccIssue,
                                   item3.AccLine,

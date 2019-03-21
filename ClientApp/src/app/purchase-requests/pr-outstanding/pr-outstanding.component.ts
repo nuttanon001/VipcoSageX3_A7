@@ -33,9 +33,30 @@ export class PrOutstandingComponent extends BaseScheduleComponent<PrOutstanding,
   }
 
   // Parameter
+  failLogin: boolean = false;
+
+  ngOnInit(): void {
+    this.buildForm();
+    if (!this.currentUser || this.currentUser.LevelUser < 2) {
+      if (!this.currentUser.SubLevel || this.currentUser.SubLevel < 1) {
+        this.serviceDialogs.error("Waining Message", "Access is restricted. please contact administrator !!!", this.viewCon).
+          subscribe(() => this.router.navigate(["login"]));
+      } else {
+        this.failLogin = true;
+      }
+    } else {
+      this.failLogin = true;
+    }
+
+    // this.failLogin = true;
+  }
 
   // get request data
   onGetData(schedule: Scroll): void {
+    if (!this.failLogin) {
+      return;
+    }
+
     this.service.getAllWithScroll(schedule, "OutStandingGetScroll/")
       .subscribe((dbData: ScrollData<PrOutstanding>) => {
         if (!dbData && !dbData.Data) {

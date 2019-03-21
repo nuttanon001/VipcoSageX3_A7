@@ -118,7 +118,7 @@ export class NavMenuComponent implements OnInit {
 
     if (include) {
       if (include === 1 && this.mainMenu) {
-        this.mainMenu.openMenu();
+        this.mainMenu.toggleMenu();
         this.closeOtherMenu(2);
         this.closeOtherMenu(3);
         this.closeOtherMenu(4);

@@ -33,10 +33,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ClientApp\src\app\shared2\" />
     <Folder Include="ClientApp\src\app\shared\resueable-component\" />
     <Folder Include="ClientApp\src\app\shared\resueable\" />
-    <Folder Include="Data\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

@@ -31,6 +31,24 @@
         <mat-datepicker #EDate></mat-datepicker>
       </mat-form-field>
     </div>
+
+    <div>
+      <i class="fa fa-calendar-o" aria-hidden="true"></i>
+      <mat-form-field>
+        <input matInput [matDatepicker]="SDate2" placeholder="Choose a document date"
+               formControlName="SDate2" [max]="reportForm.controls.EDate2.value">
+        <mat-datepicker-toggle matSuffix [for]="SDate2"></mat-datepicker-toggle>
+        <mat-datepicker #SDate2></mat-datepicker>
+      </mat-form-field>
+      &nbsp;&ndash;&nbsp;
+      <mat-form-field>
+        <input matInput [matDatepicker]="EDate2" placeholder="Choose a document date"
+               formControlName="EDate2" [min]="reportForm.controls.SDate2.value">
+        <mat-datepicker-toggle matSuffix [for]="EDate2"></mat-datepicker-toggle>
+        <mat-datepicker #EDate2></mat-datepicker>
+      </mat-form-field>
+    </div>
+
     <div>
       <button mat-mini-fab color="warn" (click)="resetFilter()"
               matTooltipPosition="left" matTooltip="Reset all filter">

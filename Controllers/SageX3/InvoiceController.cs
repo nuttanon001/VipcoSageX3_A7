@@ -429,7 +429,7 @@ namespace VipcoSageX3.Controllers.SageX3
                 // Where Project
                 if (!string.IsNullOrEmpty(Scroll.WhereProject))
                 {
-                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"SIND.PJT_0 = '{Scroll.WhereProject}'";
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"SINV.CCE_2 = '{Scroll.WhereProject}'";
                 }
 
                 #endregion
@@ -461,9 +461,9 @@ namespace VipcoSageX3.Controllers.SageX3
 
                     case "Project":
                         if (Scroll.SortOrder == -1)
-                            sSort = $"SIND.PJT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                            sSort = $"SINV.CCE_2 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
                         else
-                            sSort = $"SIND.PJT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                            sSort = $"SINV.CCE_2 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
                         break;
 
                     case "DocDateString":
@@ -490,36 +490,37 @@ namespace VipcoSageX3.Controllers.SageX3
                 var sqlCommnad = new SqlCommandViewModel()
                 {
                     SelectCommand = $@"	GAD.NUM_0 AS InvoiceNo,
-                                        SIND.NETPRIATI_0 * SIND.QTY_0 AS InvPriceInTax,
-                                        SIND.NETPRINOT_0 * SIND.QTY_0 AS InvPriceExTax,
+                                        SINV.AMTATI_0 AS InvPriceInTax,
+                                        SINV.AMTNOT_0 AS InvPriceExTax,
                                         GAH.CUR_0 AS Currency,
                                         BPC.BPCNUM_0 AS CustomerNo,
                                         BPC.ZCOMPNAME_0 AS CustomerName,
-                                        SIND.PJT_0 AS Project,
+                                        SINV.CCE_2 AS Project,
                                         GAC.FLGCLE_0 AS StatusClose,
                                         (CASE 
                                             WHEN GAH.CUR_0 = 'THB' 
-                                                    THEN SIND.NETPRIATI_0 * SIND.QTY_0
+                                                    THEN SINV.AMTATI_0--SIND.NETPRIATI_0 * SIND.QTY_0
                                             END) AS [THB_TAX],
-                                        (CASE 
+                                            (CASE 
                                             WHEN GAH.CUR_0 = 'USD' 
-                                                    THEN SIND.NETPRIATI_0 * SIND.QTY_0
+                                                    THEN SINV.AMTATI_0--SIND.NETPRIATI_0 * SIND.QTY_0
                                             END) AS [USD_TAX],
-                                        (CASE 
+                                            (CASE 
                                             WHEN GAH.CUR_0 = 'EUR' OR GAH.CUR_0 = 'GBP' 
-                                                    THEN SIND.NETPRIATI_0 * SIND.QTY_0
+                                                    THEN SINV.AMTATI_0--SIND.NETPRIATI_0 * SIND.QTY_0
                                             END) AS [EUR_TAX],
-                                        (CASE 
+
+                                            (CASE 
                                             WHEN GAH.CUR_0 = 'THB' 
-                                                    THEN SIND.NETPRINOT_0 * SIND.QTY_0
+                                                    THEN SINV.AMTNOT_0--SIND.NETPRINOT_0 * SIND.QTY_0
                                             END) AS [THB],
-                                        (CASE 
+                                            (CASE 
                                             WHEN GAH.CUR_0 = 'USD' 
-                                                    THEN SIND.NETPRINOT_0 * SIND.QTY_0
+                                                    THEN SINV.AMTNOT_0--SIND.NETPRINOT_0 * SIND.QTY_0
                                             END) AS [USD],
-                                        (CASE 
+                                            (CASE 
                                             WHEN GAH.CUR_0 = 'EUR' OR GAH.CUR_0 = 'GBP' 
-                                                    THEN SIND.NETPRINOT_0 * SIND.QTY_0
+                                                    THEN SINV.AMTNOT_0--SIND.NETPRINOT_0 * SIND.QTY_0
                                             END) AS [EUR],
                                         GAC.DUDDAT_0 AS DueDate,
                                         GAH.BPRDATVCR_0 AS DocDate,
@@ -535,9 +536,8 @@ namespace VipcoSageX3.Controllers.SageX3
                                             AND GAD.LIN_0 = GAC.LIG_0
                                     LEFT OUTER JOIN VIPCO.BPCUSTOMER BPC
                                             ON GAD.BPR_0 = BPC.BPCNUM_0
-                                    LEFT OUTER JOIN VIPCO.SINVOICED SIND
-                                            ON SIND.NUM_0 = GAC.NUM_0
-                                            AND SIND.SIDLIN_0 = (GAC.LIG_0 * 1000)",
+                                    LEFT OUTER JOIN VIPCO.SINVOICE SINV
+                                            ON  GAC.NUM_0 = SINV.NUM_0",
                     WhereCommand = sWhere,
                     OrderCommand = sSort
                 };
@@ -803,7 +803,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                 item.DIFFString);
                         }
 
-                        var file = this.helperService.CreateExcelFilePivotTables(table, "InvoiceOutStandingOverDue", "InvoiceOutStandingOverDuePivot");
+                        var file = this.helperService.CreateExcelFilePivotTables(table, "InvoiceOutStandingOverDue", "InvoiceOutStandingOverDuePivot",false);
                         return File(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "OutStandingOverDue.xlsx");
                     }
 

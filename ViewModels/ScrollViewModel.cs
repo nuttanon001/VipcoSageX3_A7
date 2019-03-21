@@ -19,13 +19,21 @@ namespace VipcoSageX3.ViewModels
         public string WhereWorkItem { get; set; }
         public string WhereWorkGroup { get; set; }
         public string WhereProject { get; set; }
+        public List<string> WhereProjects { get; set; } = new List<string>();
         public string WhereBranch { get; set; }
+        public List<string> WhereBranchs { get; set; } = new List<string>();
         public string WhereBank { get; set; }
         public List<string> WhereBanks { get; set; } = new List<string>();
         public string WhereSupplier { get; set; }
+        public string WhereRange11 { get; set; }
+        public string WhereRange12 { get; set; }
+        public string WhereRange21 { get; set; }
+        public string WhereRange22 { get; set; }
         public int? WhereId { get; set; }
         public int? TotalRow { get; set; }
         public DateTime? SDate { get; set; }
         public DateTime? EDate { get; set; }
+        public DateTime? SDate2 { get; set; }
+        public DateTime? EDate2 { get; set; }
     }
 }

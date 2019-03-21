@@ -84,7 +84,7 @@ namespace VipcoSageX3.Services
                 {
                     new Claim(ClaimTypes.Name, userVM.UserId.ToString()),
                 }),
-                Expires = DateTime.Now.AddMinutes(30),
+                Expires = DateTime.Now.AddHours(12),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

@@ -15,10 +15,12 @@ using VipcoSageX3.Services;
 using VipcoSageX3.Services.ExcelExportServices;
 using VipcoSageX3.ViewModels;
 using VipcoSageX3.ViewModels.PurchasesModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace VipcoSageX3.Controllers.SageX3
 {
     // : api/PurchaseRequest
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class PurchaseRequestController : GenericSageX3Controller<Prequisd>
@@ -1429,6 +1431,7 @@ namespace VipcoSageX3.Controllers.SageX3
 
         // POST: api/PurchaseRequest/GetScroll
         [HttpPost("GetScroll")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetScroll([FromBody] ScrollViewModel Scroll)
         {
             if (Scroll == null)
@@ -1452,6 +1455,7 @@ namespace VipcoSageX3.Controllers.SageX3
         }
 
         [HttpPost("GetReport")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReport([FromBody] ScrollViewModel Scroll)
         {
             if (Scroll == null)

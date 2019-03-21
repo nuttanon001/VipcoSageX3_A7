@@ -66,7 +66,7 @@
             </td>
           </tr>-->
           <tr>
-            <td *ngIf="(rowGroupMetadata[rowData.InvoiceStatus].index + first) === rowIndex "
+            <td *ngIf="(rowGroupMetadata[rowData.InvoiceStatus].index + first) === rowIndex"
                 [attr.rowspan]="rowGroupMetadata[rowData.InvoiceStatus].size">
               <strong>{{rowData.InvoiceStatusString}}</strong>
             </td>

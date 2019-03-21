@@ -1,0 +1,15 @@
+@import "../../shared2/styles/table-sage.scss";
+
+
+.header {
+  display: flex;
+  flex-direction: row;
+  flex-flow: row wrap;
+  text-align: center;
+
+  mat-form-field {
+    width: 225px;
+    min-height: 50px;
+    margin: 5px;
+  }
+}

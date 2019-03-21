@@ -17,6 +17,8 @@ import { MyPrimengColumn, ColumnType } from '../../shared/column.model';
 import { DialogsService } from '../../dialogs/shared/dialogs.service';
 import { extend } from 'webdriver-js-extender';
 import { BaseScheduleComponent } from 'src/app/shared/base-schedule.component';
+import { Workgroup } from 'src/app/dimension-datas/shared/workgroup.model';
+import { ProjectCode } from 'src/app/dimension-datas/shared/project-code.model';
 //3rdParty
 
 @Component({
@@ -189,7 +191,7 @@ export class PrMasterComponent extends BaseScheduleComponent<PrAndPo,PrService> 
     if (type) {
       if (type === "WorkGroup") {
         this.serviceDialogs.dialogSelectGroup(this.viewCon)
-          .subscribe(group => {
+          .subscribe((group:Workgroup) => {
             this.needReset = true;
             this.reportForm.patchValue({
               WhereWorkGroup: group ? group.WorkGroupCode : undefined,
@@ -198,7 +200,7 @@ export class PrMasterComponent extends BaseScheduleComponent<PrAndPo,PrService> 
           });
       } else if (type === "Project") {
         this.serviceDialogs.dialogSelectProject(this.viewCon)
-          .subscribe(job => {
+          .subscribe((job:ProjectCode) => {
             this.needReset = true;
             this.reportForm.patchValue({
               WhereProject: job ? job.ProjectCode : undefined,

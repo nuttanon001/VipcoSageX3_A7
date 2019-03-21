@@ -46,7 +46,7 @@ namespace VipcoSageX3.Controllers.SageX3
 
             var ListData = await this.repositoryDim2.GetToListAsync(
                 x => x, 
-                x => x.Zone0 == "LNGDES" && x.Ident10 == "3002" && x.Ident20.Length > 1);
+                x => x.Zone0 == "DESTRA" && x.Ident10 == "WG" && x.Codfic0 == "CACCE");
             var ListMap = new List<WorkGroupViewModel>();
             foreach (var item in ListData)
             {
@@ -67,7 +67,7 @@ namespace VipcoSageX3.Controllers.SageX3
             // Filter
             var filters = string.IsNullOrEmpty(Scroll.Filter) ? new string[] { "" }
                                 : Scroll.Filter.Split(null);
-            Expression<Func<Atextra,bool>> predicate = x => x.Zone0 == "LNGDES" && x.Ident10 == "3002" && x.Ident20.Length > 1;
+            Expression<Func<Atextra,bool>> predicate = x => x.Zone0 == "DESTRA" && x.Ident10 == "WG" && x.Codfic0 == "CACCE";
             foreach (string temp in filters)
             {
                 string keyword = temp;

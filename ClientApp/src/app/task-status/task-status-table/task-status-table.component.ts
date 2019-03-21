@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { BaseTableComponent } from 'src/app/shared2/baseclases/base-table.component';
-import * as moment from "moment";
 import { TaskStatusMaster } from '../shared/task-status-master.model';
 import { TaskStatusMasterService } from '../shared/task-status-master.service';
 import { AuthService } from 'src/app/core/auth/auth.service';
+import * as moment from "moment";
 
 @Component({
   selector: 'app-task-status-table',

@@ -10,12 +10,13 @@
       </ng-template>
     </div>
     <div class="right-content ml-1">
-      <button type="button" mat-icon-button color="primary" (click)="onSelectedClick()"
-              [disabled]="!getValue && !getValues" matTooltip="Selected" matTooltipPosition="left">
-        <mat-icon>offline_pin</mat-icon>
+      <button mat-mini-fab color="primary" (click)="onSelectedClick()" matTooltip="primary"
+              [disabled]="(!getValue && !getValues)">
+        <mat-icon>done</mat-icon>
       </button>
-      <button type="button" mat-icon-button color="warn" (click)="onCancelClick()"
-              matTooltip="Cancel" matTooltipPosition="left">
+      <hr />
+      <button mat-mini-fab color="warn" (click)="onCancelClick()"
+              matTooltip="close dialog">
         <mat-icon>clear</mat-icon>
       </button>
     </div>

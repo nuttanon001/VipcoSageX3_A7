@@ -94,23 +94,29 @@ namespace VipcoSageX3.Services.ExcelExportServices
             return memory;
         }
 
-        public MemoryStream CreateExcelFilePivotTables(DataTable table, string sheetName,string pivotName = "")
+        public MemoryStream CreateExcelFilePivotTables(DataTable table, string sheetName,string pivotName = "",bool hideData = true)
         {
             var memory = this.excelService.CreateMemory();
 
             using (var workbook = this.excelService.Create())
             {
                 var wsSource = workbook.Worksheets.Add(sheetName);
-                wsSource.Hide();
                 var tableSource = wsSource.Cell(1, 1).InsertTable(table, true);
+
+                // Hide work sheets
+                if (hideData)
+                {
+                    wsSource.Hide();
+                    wsSource.Columns().AdjustToContents();
+                }
                 // wsSource.SheetView.FreezeRows(1);
                 // Set data to excel
-
+                pivotName = string.IsNullOrEmpty(pivotName) ? (sheetName + "Pivot") : pivotName;
                 // Add a new sheet for our pivot table
-                var ptSheet = workbook.Worksheets.Add(pivotName ?? (sheetName + "Pivot"));
+                var ptSheet = workbook.Worksheets.Add(pivotName);
                 // Create the pivot table, using the data from the "PastrySalesData" table
 
-                var pt = ptSheet.PivotTables.Add(pivotName ?? (sheetName + "Pivot"), ptSheet.Cell(1, 1), tableSource);
+                var pt = ptSheet.PivotTables.Add(pivotName, ptSheet.Cell(1, 1), tableSource);
                 // The rows in our pivot table will be the names of the pastries
                 // pt.RowLabels.Add("Name");
 
