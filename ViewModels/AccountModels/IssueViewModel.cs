@@ -7,6 +7,7 @@ namespace VipcoSageX3.ViewModels
 {
     public class IssueViewModel
     {
+        public string MiscNumber { get; set; }
         public int? MiscLine { get; set; }
         public string ItemCode { get; set; }
         public string ItemName { get; set; }

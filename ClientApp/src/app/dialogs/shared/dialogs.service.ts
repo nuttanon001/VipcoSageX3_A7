@@ -85,7 +85,7 @@ export class DialogsService {
   * @param viewContainerRef
   * @param type = mode 0:fastSelected
   */
-  public dialogSelectBomLevel(viewContainerRef: ViewContainerRef, type: number = 0): Observable<BomLevel> {
+  public dialogSelectBomLevel(viewContainerRef: ViewContainerRef, type: number = 0): Observable<BomLevel|Array<BomLevel>> {
     let dialogRef: MatDialogRef<BomDialogComponent>;
     let config: MatDialogConfig = new MatDialogConfig();
 

@@ -11,6 +11,7 @@ import { Scroll } from 'src/app/shared/scroll.model';
 import { Workgroup } from 'src/app/dimension-datas/shared/workgroup.model';
 import { ProjectCode } from 'src/app/dimension-datas/shared/project-code.model';
 import { Branch } from 'src/app/dimension-datas/shared/branch.model';
+import { BomLevel } from 'src/app/dimension-datas/shared/bom-level.model';
 
 @Component({
   selector: 'app-issus-workgroup',
@@ -44,7 +45,7 @@ export class IssusWorkgroupComponent extends BaseScheduleComponent<IssusWorkgrou
 
     this.buildForm();
     if (!this.currentUser || this.currentUser.LevelUser < 2) {
-      if (!this.currentUser.SubLevel || this.currentUser.SubLevel < 1) {
+      if (!this.currentUser || !this.currentUser.SubLevel || this.currentUser.SubLevel < 1) {
         this.serviceDialogs.error("Waining Message", "Access is restricted. please contact administrator !!!", this.viewCon).
           subscribe(() => this.router.navigate(["login"]));
       } else {
@@ -87,7 +88,8 @@ export class IssusWorkgroupComponent extends BaseScheduleComponent<IssusWorkgrou
           { field: 'TextName', header: 'TextName', width: 350, canSort: true },
           { field: 'Branch', header: 'Branch', width: 150, canSort: true },
           { field: 'Project', header: 'Project', width: 150, canSort: true },
-          { field: 'WorkGroup', header: 'WorkGroup', width: 150, canSort: true },
+          { field: 'WorkItem', header: 'WorkItem', width: 150, canSort: true },
+          { field: 'WorkGroup', header: 'WorkGroup', width: 150, canSort: true }, 
           { field: 'Uom', header: 'Uom', width: 120, canSort: true },
           { field: 'QuantityString', header: 'Quantity', width: 150, canSort: true },
           { field: 'UnitPriceString', header: 'UnitPrice', width: 120 },
@@ -167,6 +169,21 @@ export class IssusWorkgroupComponent extends BaseScheduleComponent<IssusWorkgrou
             this.reportForm.patchValue({
               WhereProjects: projects ? projects.map((item) => item.ProjectCode) : undefined,
               ProjectString: projects ? nameProject : undefined,
+            });
+          });
+      } else if (type === "WorkItem") {
+        this.serviceDialogs.dialogSelectBomLevel(this.viewCon, 1)
+          .subscribe((boms: Array<BomLevel>) => {
+            let nameBoms: string = "";
+            if (boms) {
+              nameBoms = (boms[0].BomLevelName.length > 21 ? boms[0].BomLevelName.slice(0, 21) + "..." : boms[0].BomLevelName) +
+                (boms.length > 1 ? `+ ${boms.length - 1} others` : "");
+              //--------------------//
+            }
+            this.needReset = true;
+            this.reportForm.patchValue({
+              WhereWorkItems: boms ? boms.map((item) => item.BomLevelCode) : undefined,
+              WorkItemString: boms ? nameBoms : undefined,
             });
           });
       }

@@ -7,6 +7,7 @@ namespace VipcoSageX3.ViewModels
 {
     public class JournalViewModel
     {
+        public string AccNumber { get; set; }
         public int? AccLine { get; set; }
         public int? CurType { get; set; }
         public decimal? AmountCurrency { get; set; }

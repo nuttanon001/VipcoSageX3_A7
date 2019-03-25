@@ -19,6 +19,7 @@ import { extend } from 'webdriver-js-extender';
 import { BaseScheduleComponent } from 'src/app/shared/base-schedule.component';
 import { Workgroup } from 'src/app/dimension-datas/shared/workgroup.model';
 import { ProjectCode } from 'src/app/dimension-datas/shared/project-code.model';
+import { BomLevel } from 'src/app/dimension-datas/shared/bom-level.model';
 //3rdParty
 
 @Component({
@@ -209,7 +210,7 @@ export class PrMasterComponent extends BaseScheduleComponent<PrAndPo,PrService> 
           });
       } else if (type === "WorkItem") {
         this.serviceDialogs.dialogSelectBomLevel(this.viewCon)
-          .subscribe(bom => {
+          .subscribe((bom:BomLevel) => {
             this.needReset = true;
             this.reportForm.patchValue({
               WhereWorkItem: bom ? bom.BomLevelCode : undefined,

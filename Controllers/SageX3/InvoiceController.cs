@@ -550,6 +550,7 @@ namespace VipcoSageX3.Controllers.SageX3
             }
             return null;
         }
+
         // POST: api/Invoice/GetScroll
         [HttpPost("GetScroll")]
         public async Task<IActionResult> GetScroll([FromBody] ScrollViewModel Scroll)
@@ -636,7 +637,7 @@ namespace VipcoSageX3.Controllers.SageX3
         }
 
         // POST: api/Invoice/GetScroll
-        [HttpPost("JournalGetScroll")]
+        [HttpPost("JournalGetScroll")] 
         public async Task<IActionResult> JournalGetScroll([FromBody] ScrollViewModel Scroll)
         {
             if (Scroll == null)
@@ -816,5 +817,6 @@ namespace VipcoSageX3.Controllers.SageX3
             }
             return BadRequest(new { Error = Message });
         }
+
     }
 }

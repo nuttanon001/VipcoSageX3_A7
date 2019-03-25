@@ -17,6 +17,8 @@ namespace VipcoSageX3.ViewModels
         public bool? Reload { get; set; }
         public string Where { get; set; }
         public string WhereWorkItem { get; set; }
+        public List<string> WhereWorkItems { get; set; } = new List<string>();
+
         public string WhereWorkGroup { get; set; }
         public string WhereProject { get; set; }
         public List<string> WhereProjects { get; set; } = new List<string>();

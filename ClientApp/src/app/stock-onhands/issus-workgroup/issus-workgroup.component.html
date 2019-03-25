@@ -62,6 +62,15 @@
     </div>
 
     <div>
+      <i class="fa fa-shopping-bag" aria-hidden="true"></i>
+      <mat-form-field>
+        <input matInput placeholder="Filter By WorkItem" class="click-input"
+               (click)="onShowDialog('WorkItem')" readonly
+               formControlName="WorkItemString">
+      </mat-form-field>
+    </div>
+
+    <div>
       <i class="fa fa-calendar-o" aria-hidden="true"></i>
       <mat-form-field>
         <input matInput [matDatepicker]="SDate" placeholder="Choose from a date"

@@ -39,7 +39,7 @@ export class PoSubReportComponent extends BaseScheduleComponent<PoSubReport, PrS
   ngOnInit(): void {
     this.buildForm();
     if (!this.currentUser || this.currentUser.LevelUser < 2) {
-      if (!this.currentUser.SubLevel || this.currentUser.SubLevel < 2) {
+      if (!this.currentUser || !this.currentUser.SubLevel || this.currentUser.SubLevel < 2) {
         this.serviceDialogs.error("Waining Message", "Access is restricted. please contact administrator !!!", this.viewCon).
           subscribe(() => this.router.navigate(["login"]));
       } else {

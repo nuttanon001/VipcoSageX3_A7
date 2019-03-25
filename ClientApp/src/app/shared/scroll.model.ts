@@ -9,6 +9,7 @@ export interface Scroll {
   WhereId?: number;
   TotalRow?: number;
   WhereWorkItem?: string;
+  WhereWorkItems?: Array<string>;
   WhereWorkGroup?: string;
   WhereProject?: string;
   WhereProjects?: Array<string>;

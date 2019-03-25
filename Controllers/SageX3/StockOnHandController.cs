@@ -2,6 +2,7 @@
 using AutoMapper;
 using ClosedXML.Excel;
 using HtmlAgilityPack;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -834,6 +835,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                                         OR LOWER(ITM.ITMDES1_0 ) LIKE '%{keyword}%'
                                                         OR LOWER(STJ.STU_0 ) LIKE '%{keyword}%'
                                                         OR LOWER(STJ.CCE_0 ) LIKE '%{keyword}%'
+                                                        OR LOWER(STJ.CCE_1 ) LIKE '%{keyword}%'
                                                         OR LOWER(STJ.CCE_2 ) LIKE '%{keyword}%'
                                                         OR LOWER(STJ.CCE_3) LIKE '%{keyword}%')";
                 }
@@ -860,6 +862,18 @@ namespace VipcoSageX3.Controllers.SageX3
 
                     var branchs = string.Join(',', list);
                     sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"STJ.CCE_0 IN ({branchs})";
+                }
+
+                // Where Item Bom
+                if (Scroll.WhereWorkItems.Any())
+                {
+                    var list = new List<string>();
+
+                    foreach (var item in Scroll.WhereWorkItems)
+                        list.Add($"'{item}'");
+
+                    var workitems = string.Join(',', list);
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"STJ.CCE_1 IN ({workitems})";
                 }
 
                 // Where Item Project
@@ -947,6 +961,13 @@ namespace VipcoSageX3.Controllers.SageX3
                             sSort = $"STJ.CCE_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
                         break;
 
+                    case "WorkItem":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"STJ.CCE_1 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"STJ.CCE_1 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
                     case "Project":
                         if (Scroll.SortOrder == -1)
                             sSort = $"STJ.CCE_2 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
@@ -975,6 +996,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                         TXT.TEXTE_0 AS [TextName],
                                         STJ.STU_0 AS [Uom],
                                         STJ.CCE_0 AS [Branch],
+                                        STJ.CCE_1 AS [WorkItem],
                                         STJ.CCE_2 AS [Project],
                                         STJ.CCE_3 AS [WorkGroup],
                                         (SELECT WG.TEXTE_0
@@ -994,7 +1016,7 @@ namespace VipcoSageX3.Controllers.SageX3
                     GroupCommand = $@" STJ.ITMREF_0,ITM.ITMDES1_0,
                                         TXT.TEXTE_0, STJ.STU_0,
                                         STJ.CCE_0,STJ.CCE_2,
-                                        STJ.CCE_3 "
+                                        STJ.CCE_1,STJ.CCE_3 "
                 };
 
                 var result = await this.repositoryIssus.GetEntitiesAndTotal(sqlCommnad, new { Skip = Scroll.Skip ?? 0, Take = Scroll.Take ?? 50 });
@@ -1152,6 +1174,7 @@ namespace VipcoSageX3.Controllers.SageX3
         }
 
         [HttpPost("OnHandMk2GetScroll")]
+        [Authorize]
         public async Task<IActionResult> OnHandMk2GetScroll([FromBody] ScrollViewModel Scroll)
         {
             if (Scroll == null)
@@ -1171,6 +1194,7 @@ namespace VipcoSageX3.Controllers.SageX3
         }
 
         [HttpPost("OnHandMk2GetReport")]
+        [Authorize]
         public async Task<IActionResult> OnHandMk2GetReport([FromBody] ScrollViewModel Scroll)
         {
             var Message = "Data not been found.";
@@ -1232,6 +1256,7 @@ namespace VipcoSageX3.Controllers.SageX3
         }
 
         [HttpPost("BalanceGetScroll")]
+        [Authorize]
         public async Task<IActionResult> BalanceGetScroll([FromBody] ScrollViewModel Scroll)
         {
             if (Scroll == null)
@@ -1251,6 +1276,7 @@ namespace VipcoSageX3.Controllers.SageX3
         }
 
         [HttpPost("BalanceGetReport")]
+        [Authorize]
         public async Task<IActionResult> BalanceGetReport([FromBody] ScrollViewModel Scroll)
         {
             var Message = "Data not been found.";
@@ -1310,6 +1336,7 @@ namespace VipcoSageX3.Controllers.SageX3
         }
 
         [HttpPost("IssusWorkGroupGetScroll")]
+        [Authorize]
         public async Task<IActionResult> IssusWorkGroupGetScroll([FromBody] ScrollViewModel Scroll)
         {
             if (Scroll == null)
@@ -1329,6 +1356,7 @@ namespace VipcoSageX3.Controllers.SageX3
         }
 
         [HttpPost("IssusWorkGroupGetReport")]
+        [Authorize]
         public async Task<IActionResult> IssusWorkGroupGetReport([FromBody] ScrollViewModel Scroll)
         {
             var Message = "Data not been found.";
@@ -1347,23 +1375,24 @@ namespace VipcoSageX3.Controllers.SageX3
                   
                             ws.Cell(1, 1).Value = "รายงานการเบิกใช้";
                             ws.Cell(1, 1).DataType = XLDataType.Text;
-                            ws.Range(1, 1, 1, 5).Merge().AddToNamed("Titles");
+                            ws.Range(1, 1, 1, 6).Merge().AddToNamed("Titles");
 
                             var StartDate = Scroll.SDate != null ? Scroll.SDate.Value.ToString("dd/MM/yy") : "-";
                             var EndDate = Scroll.EDate != null ? Scroll.EDate.Value.ToString("dd/MM/yy") : DateTime.Today.ToString("dd/MM/yy");
                             ws.Cell(2, 1).Value = $"วันที่ { StartDate } - { EndDate } (วันที่เริ่มงาน-วันที่จบงาน)";
                             ws.Cell(2, 1).DataType = XLDataType.Text;
-                            ws.Range(2, 1, 2, 5).Merge().AddToNamed("Titles");
+                            ws.Range(2, 1, 2, 6).Merge().AddToNamed("Titles");
 
                             var Project = Scroll.WhereProjects.Any() ? string.Join(",", Scroll.WhereProjects) : "All";
                             ws.Cell(3, 1).Value = $"Project Number : {Project}";
                             ws.Cell(3, 1).DataType = XLDataType.Text;
-                            ws.Range(3, 1, 3, 5).Merge().AddToNamed("Titles");
+                            ws.Range(3, 1, 3, 6).Merge().AddToNamed("Titles");
 
                             var Branch = Scroll.WhereBranchs.Any() ? string.Join(",", Scroll.WhereBranchs) : "All";
                             ws.Cell(4, 1).Value = $"Branch : { Branch }";
+
                             ws.Cell(4, 1).DataType = XLDataType.Text;
-                            ws.Range(4, 1, 4, 5).Merge().AddToNamed("Titles");
+                            ws.Range(4, 1, 4, 6).Merge().AddToNamed("Titles");
 
                             // Move to the next row (it now has the titles)
                             var hasData = MapDatas.GroupBy(z => new { z.WorkGroup, z.WorkGroupName }).ToList();
@@ -1372,18 +1401,20 @@ namespace VipcoSageX3.Controllers.SageX3
                             foreach (var wg in hasData.OrderBy(x => x.Key.WorkGroup))
                             {
                                 ws.Cell(startRow, 1).Value = $"{wg.Key.WorkGroup} | {wg.Key.WorkGroupName}";
-                                ws.Range(startRow, 1, startRow, 5).Merge().AddToNamed("Titles2");
+                                ws.Range(startRow, 1, startRow, 6).Merge().AddToNamed("Titles2");
                                 var rowData = wg.GroupBy(z => new
                                 {
                                     z.ItemNo,
                                     z.TextName,
-                                    z.Uom
+                                    z.Uom,
+                                    z.WorkItem
                                 }).Select(
                                     x => new
                                     {
                                         x.Key.ItemNo,
                                         x.Key.TextName,
                                         x.Key.Uom,
+                                        x.Key.WorkItem,
                                         Quantity = x.Sum(z => z.Quantity >= 0 ? z.Quantity : z.Quantity * -1),
                                         Cost = x.Sum(z => z.TotalCost >= 0 ? z.TotalCost : z.TotalCost * -1)
                                     }).ToList();
@@ -1396,6 +1427,42 @@ namespace VipcoSageX3.Controllers.SageX3
 
                                 startRow = startRow + 2 + tableData.RowCount();
                             }
+                            // End Line
+                            ws.Row(startRow + 1).Height = 30;
+                            ws.Row(startRow + 2).Height = 30;
+
+                            // Box1
+                            ws.Cell(startRow + 1, 1).Value = "ผู้จัดทำ/บันทึก";
+                            ws.Cell(startRow + 1, 1).DataType = XLDataType.Text;
+                            ws.Cell(startRow + 1, 1).AddToNamed("Box");
+                            ws.Cell(startRow + 2, 1).Value = "";
+                            ws.Cell(startRow + 2, 1).AddToNamed("Box");
+
+                            // Box2
+                            ws.Cell(startRow + 1, 2).Value = "ผู้ตรวจสอบ";
+                            ws.Cell(startRow + 1, 2).DataType = XLDataType.Text;
+                            ws.Cell(startRow + 1, 2).AddToNamed("Box");
+                            ws.Cell(startRow + 2, 2).Value = "";
+                            ws.Cell(startRow + 2, 2).AddToNamed("Box");
+
+                            // Box3
+                            ws.Cell(startRow + 1, 3).Value = "ผู้อนุมัติ";
+                            ws.Cell(startRow + 1, 3).DataType = XLDataType.Text;
+                            ws.Range(startRow + 1, 3, startRow + 1, 6).Merge().AddToNamed("Box");
+                            ws.Range(startRow + 2, 3, startRow + 2, 6).Merge().AddToNamed("Box");
+
+                            var boxStyle = wb.Style;
+                            boxStyle.Font.Bold = true;
+                            boxStyle.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            boxStyle.Border.TopBorder = XLBorderStyleValues.Thick;
+                            boxStyle.Border.TopBorderColor = XLColor.Black;
+                            boxStyle.Border.BottomBorder = XLBorderStyleValues.Thick;
+                            boxStyle.Border.BottomBorderColor = XLColor.Black;
+                            boxStyle.Border.LeftBorder = XLBorderStyleValues.Thick;
+                            boxStyle.Border.LeftBorderColor = XLColor.Black;
+                            boxStyle.Border.RightBorder = XLBorderStyleValues.Thick;
+                            boxStyle.Border.RightBorderColor = XLColor.Black;
+                            wb.NamedRanges.NamedRange("Box").Ranges.Style = boxStyle;
 
                             // Prepare the style for the titles
                             var titlesStyle = wb.Style;
@@ -1409,7 +1476,8 @@ namespace VipcoSageX3.Controllers.SageX3
                             titlesStyle2.Fill.BackgroundColor = XLColor.LightSteelBlue;
                             wb.NamedRanges.NamedRange("Titles2").Ranges.Style = titlesStyle2;
 
-
+                            ws.Columns(6, 6).Style.NumberFormat.Format = "#,##0.00";
+                            ws.Columns(5, 5).Style.NumberFormat.Format = "#,##0";
                             ws.Columns().AdjustToContents();
 
                             wb.SaveAs(memory);
@@ -1425,57 +1493,6 @@ namespace VipcoSageX3.Controllers.SageX3
                 Message = $"Has error{ex.ToString()}";
             }
             return BadRequest(new { Error = Message });
-        }
-
-        private void ExtractCategoriesCompanies(string northwinddataXlsx,
-            out List<string> categories,
-            out List<string> companies)
-        {
-            categories = new List<string>();
-            const int coCategoryId = 1;
-            const int coCategoryName = 2;
-
-            var wb = new XLWorkbook(northwinddataXlsx);
-            var ws = wb.Worksheet("Data");
-
-            // Look for the first row used
-            var firstRowUsed = ws.FirstRowUsed();
-
-            // Narrow down the row so that it only includes the used part
-            var categoryRow = firstRowUsed.RowUsed();
-
-            // Move to the next row (it now has the titles)
-            categoryRow = categoryRow.RowBelow();
-
-            // Get all categories
-            while (!categoryRow.Cell(coCategoryId).IsEmpty())
-            {
-                String categoryName = categoryRow.Cell(coCategoryName).GetString();
-                categories.Add(categoryName);
-
-                categoryRow = categoryRow.RowBelow();
-            }
-
-            // There are many ways to get the company table.
-            // Here we're using a straightforward method.
-            // Another way would be to find the first row in the company table
-            // by looping while row.IsEmpty()
-
-            // First possible address of the company table:
-            var firstPossibleAddress = ws.Row(categoryRow.RowNumber()).FirstCell().Address;
-            // Last possible address of the company table:
-            var lastPossibleAddress = ws.LastCellUsed().Address;
-
-            // Get a range with the remainder of the worksheet data (the range used)
-            var companyRange = ws.Range(firstPossibleAddress, lastPossibleAddress).RangeUsed();
-
-            // Treat the range as a table (to be able to use the column names)
-            var companyTable = companyRange.AsTable();
-
-            // Get the list of company names
-            companies = companyTable.DataRange.Rows()
-              .Select(companyRow => companyRow.Field("Company Name").GetString())
-              .ToList();
         }
     }
 }

@@ -13,6 +13,7 @@ namespace VipcoSageX3.ViewModels.StockModels
         public string Uom { get; set; }
         public string Branch { get; set; }
         public string Project { get; set; }
+        public string WorkItem { get; set; }
         public string WorkGroup { get; set; }
         public string WorkGroupName { get; set; }
         public double? Quantity { get; set; }

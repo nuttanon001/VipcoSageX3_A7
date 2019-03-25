@@ -38,7 +38,7 @@ export class PrOutstandingComponent extends BaseScheduleComponent<PrOutstanding,
   ngOnInit(): void {
     this.buildForm();
     if (!this.currentUser || this.currentUser.LevelUser < 2) {
-      if (!this.currentUser.SubLevel || this.currentUser.SubLevel < 1) {
+      if (!this.currentUser || !this.currentUser.SubLevel || this.currentUser.SubLevel < 1) {
         this.serviceDialogs.error("Waining Message", "Access is restricted. please contact administrator !!!", this.viewCon).
           subscribe(() => this.router.navigate(["login"]));
       } else {
