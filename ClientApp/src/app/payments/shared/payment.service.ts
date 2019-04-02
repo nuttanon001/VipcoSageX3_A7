@@ -5,7 +5,6 @@ import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Payment } from './payment.model';
 import { Observable } from 'rxjs';
 import { Scroll } from '../../shared/scroll.model';
-import { ResponseContentType } from '@angular/http';
 import { map } from "rxjs/operators"
 
 @Injectable()
@@ -48,8 +47,8 @@ export class PaymentService extends BaseRestService<Payment> {
     // return this.http.get<User[]>(`${config.apiUrl}/users`);
   }
 
-  getXlsx(scroll: Scroll): Observable<any> {
-    let url: string = this.baseUrl + "GetReport/";
+  getXlsx(scroll: Scroll, subReport: string = "GetReport/"): Observable<any> {
+    let url: string = this.baseUrl + subReport;
 
     return this.http.post(url, JSON.stringify(scroll), {
       headers: new HttpHeaders({

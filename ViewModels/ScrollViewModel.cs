@@ -33,6 +33,7 @@ namespace VipcoSageX3.ViewModels
         public string WhereRange22 { get; set; }
         public int? WhereId { get; set; }
         public int? TotalRow { get; set; }
+        public bool? CheckOption { get; set; }
         public DateTime? SDate { get; set; }
         public DateTime? EDate { get; set; }
         public DateTime? SDate2 { get; set; }

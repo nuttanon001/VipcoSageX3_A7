@@ -5,7 +5,7 @@ import { AllowedEmployeeService } from '../shared/allowed-employee.service';
 import { AllowedEmployeeCommunicateService } from '../shared/allowed-employee-communicate.service';
 import { ShareService } from 'src/app/shared2/share.service';
 import { DialogsService } from 'src/app/dialogs/shared/dialogs.service';
-import { typeField, inputType, ValidatorField } from 'src/app/shared2/dynamic-form/field-config.model';
+import { typeField, inputType, ValidatorField, ReturnValue } from 'src/app/shared2/dynamic-form/field-config.model';
 import { Validators } from '@angular/forms';
 import { Employee } from 'src/app/employees/shared/employee.model';
 
@@ -120,16 +120,16 @@ export class AllowedEmployeeInfoComponent
   }
 
   // submit dynamic form
-  submitDynamicForm(InfoValue?: AllowedEmployee): void {
+  submitDynamicForm(InfoValue?: ReturnValue<AllowedEmployee>): void {
     if (InfoValue) {
       if (!this.denySave) {
-        let template = InfoValue;
+        let template: AllowedEmployee = InfoValue.value
         // Template
         for (let key in template) {
           // console.log(key);
           this.InfoValue[key] = template[key];
         }
-        this.isValid = true;
+        this.isValid = InfoValue.valid;
         //debug here
         // console.log(JSON.stringify(InfoValue));
         this.SetCommunicatetoParent();

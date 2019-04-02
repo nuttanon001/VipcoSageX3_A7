@@ -1,0 +1,22 @@
+<div *ngIf="InfoValue;else elseBlock">
+  <mat-horizontal-stepper [linear]="true" #stepper="matHorizontalStepper">
+    <mat-step>
+      <ng-template matStepLabel>
+        <strong><b>Purchase Extend Information.</b></strong>
+      </ng-template>
+      <ng-container *ngIf="regConfig">
+        <dynamic-form [fields]="regConfig" (submit)="submitDynamicForm($event)">
+        </dynamic-form>
+      </ng-container>
+      <hr />
+      <app-purchase-line-extend-sub-table [dataRows]="InfoValue.PurchaseLineExtends" (returnSelectedWith)="OnDetailAction($event)"
+                                          [readOnly]="denySave">
+      </app-purchase-line-extend-sub-table>
+    </mat-step>
+  </mat-horizontal-stepper>
+</div>
+
+<ng-template #elseBlock>
+  <mat-progress-bar mode="indeterminate" style="margin-top:50px;"></mat-progress-bar>
+  Waiting... for loading
+</ng-template>

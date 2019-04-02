@@ -1,7 +1,7 @@
-import { OnInit, OnDestroy, ViewContainerRef } from "@angular/core";
+import { OnInit, OnDestroy, ViewContainerRef, HostListener } from "@angular/core";
 import { FormBuilder, FormGroup, AbstractControl } from "@angular/forms";
 import { BaseRestService } from "./base-rest.service";
-// import { DialogsService } from "../dialogs/shared/dialogs.service";
+import { DialogsService } from "../../dialogs/shared/dialogs.service";
 // 3rd_party
 import { Subscription, Observable, interval } from "rxjs";
 import { LazyLoadEvent } from "primeng/primeng";
@@ -9,14 +9,18 @@ import { debounceTime, distinctUntilChanged, map } from "rxjs/operators";
 // Model
 import { MyColumn } from "../basemode/my-colmun.model";
 import { Scroll } from "../basemode/scroll.model";
+// Func
+import { debounceFunc } from "../basefunc/delay-func";
 
 export abstract class BaseScheduleComponent<Model, Service extends BaseRestService<Model>> implements OnInit, OnDestroy {
   constructor(
     public service: Service,
     public fb: FormBuilder,
     public viewCon: ViewContainerRef,
-    // public serviceDialogs: DialogsService
-  ) { }
+    public serviceDialogs: DialogsService
+  ) {
+    this.tableHeight = (window.innerHeight - this.sizeForm) + "px";
+  }
 
   //Parameter
   datasource: Array<Model>;
@@ -34,8 +38,10 @@ export abstract class BaseScheduleComponent<Model, Service extends BaseRestServi
   scroll: Scroll;
   reportForm: FormGroup;
   first: number = 0;
-  pageRow: number = 15;
+  pageRow: number = 50;
   needReset: boolean = false;
+  tableHeight: string;
+  sizeForm: number = 220;
 
   ngOnInit() {
     this.buildForm();
@@ -170,4 +176,13 @@ export abstract class BaseScheduleComponent<Model, Service extends BaseRestServi
 
   // Open Dialog
   abstract onShowDialog(type?: string): void;
+
+  @HostListener('window:resize', ['$event'])
+  @debounceFunc()
+  onResize(event) {
+    // console.log("innerWidth", event.target.innerWidth);
+    // console.log("innerHeight", event.target.innerHeight);
+
+    this.tableHeight = (event.target.innerHeight - this.sizeForm) + "px";
+  }
 }

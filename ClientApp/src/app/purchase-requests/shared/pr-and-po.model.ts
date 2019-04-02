@@ -160,4 +160,8 @@ export interface PrAndPo {
   /// </summary>
   CloseStatus?: string;
   PurchaseReceipts?: Array<PurchaseReceipt>;
+
+  //Addition Requirement
+  ReceivedDate?: string;
+  PurchaseComment?: string;
 }

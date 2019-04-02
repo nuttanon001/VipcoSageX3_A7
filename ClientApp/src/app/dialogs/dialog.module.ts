@@ -36,6 +36,10 @@ import { CustomerDialogComponent } from './customer-dialog/customer-dialog.compo
 import { CustomerTableDialogComponent } from './customer-dialog/customer-table-dialog/customer-table-dialog.component';
 import { BranchDialogComponent } from './branch-dialog/branch-dialog.component';
 import { BranchTableDialogComponent } from './branch-dialog/branch-table-dialog/branch-table-dialog.component';
+import { PartnerDialogComponent } from './partner-dialog/partner-dialog.component';
+import { PartnerTableDialogComponent } from './partner-dialog/partner-table-dialog/partner-table-dialog.component';
+import { PurchaseRequestDialogComponent } from './purchase-request-dialog/purchase-request-dialog.component';
+import { PurchaseRequestTableDialogComponent } from './purchase-request-dialog/purchase-request-table-dialog/purchase-request-table-dialog.component';
 
 @NgModule({
   imports: [
@@ -71,6 +75,10 @@ import { BranchTableDialogComponent } from './branch-dialog/branch-table-dialog/
     CustomerTableDialogComponent,
     BranchDialogComponent,
     BranchTableDialogComponent,
+    PartnerDialogComponent,
+    PartnerTableDialogComponent,
+    PurchaseRequestDialogComponent,
+    PurchaseRequestTableDialogComponent,
   ],
   providers: [
     DialogsService,
@@ -99,6 +107,10 @@ import { BranchTableDialogComponent } from './branch-dialog/branch-table-dialog/
     CustomerTableDialogComponent,
     BranchDialogComponent,
     BranchTableDialogComponent,
+    PartnerDialogComponent,
+    PartnerTableDialogComponent,
+    PurchaseRequestDialogComponent,
+    PurchaseRequestTableDialogComponent,
   ],
 })
 export class DialogsModule { }

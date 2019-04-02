@@ -9,7 +9,6 @@ import { CustomerService } from 'src/app/dimension-datas/shared/customer.service
   styleUrls: ['./customer-table-dialog.component.scss']
 })
 export class CustomerTableDialogComponent extends BaseTableMK2Component<Customer, CustomerService> {
-
   constructor(
     service: CustomerService
   ) {
@@ -23,5 +22,4 @@ export class CustomerTableDialogComponent extends BaseTableMK2Component<Customer
     this.displayedColumns = this.columns.map(x => x.columnField);
     this.isDialog = true;
   }
-
 }

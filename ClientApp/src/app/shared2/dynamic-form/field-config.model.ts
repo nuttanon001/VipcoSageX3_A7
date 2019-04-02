@@ -26,6 +26,11 @@ export interface FieldConfig {
   validations?: Validator[];
 }
 
+export interface ReturnValue<Model> {
+  value?: Model,
+  valid?: boolean
+}
+
 export interface OptionField {
   label?: string;
   value?: any;
@@ -45,6 +50,7 @@ export enum typeField {
   button = "button",
   select = "select",
   date = "date",
+  dateevent = "dateevent",
   radiobutton = "radiobutton",
   checkbox = "checkbox"
 }

@@ -1,0 +1,39 @@
+@import "../../shared2/styles/table.style.scss";
+
+/*.mat-column-NoTaskMachineCode {
+  flex: 0 0 125px;
+}
+.mat-column-AssignedByString, .mat-column-Command {
+  flex: 0 0 150px !important;
+}*/
+
+.mat-table {
+  overflow: auto;
+  height: calc(#{$master-vh} - 350px);
+  width: calc(#{$master-vw} - 150px);
+}
+
+/*table {
+  overflow: auto;
+  width: 100%;
+}*/
+
+mat-form-field.mat-form-field {
+  max-width: 80%;
+}
+
+.mat-column-Command {
+  max-width: 85px;
+}
+
+.mat-column-ItemName {
+  min-width: 350px;
+}
+
+.mat-column-Quantity, .mat-column-PrLine {
+  max-width: 125px;
+}
+
+.mat-column-ItemCode {
+  max-width: 175px;
+}

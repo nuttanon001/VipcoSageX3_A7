@@ -9,7 +9,7 @@
         <app-customer-table-dialog (returnSelectesd)="onSelectedValues($event)" [isMultiple]="true"></app-customer-table-dialog>
       </ng-template>
     </div>
-    <div class="right-content ml-1">
+    <div class="right-content mr-1">
       <button mat-mini-fab color="primary" (click)="onSelectedClick()" matTooltip="primary"
               [disabled]="(!getValue && !getValues)">
         <mat-icon>done</mat-icon>

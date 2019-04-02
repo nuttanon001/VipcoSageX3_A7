@@ -36,48 +36,16 @@ export class PrMasterComponent extends BaseScheduleComponent<PrAndPo,PrService> 
   ) {
     
     super(service, fb, viewCon, serviceDialogs);
-    this.sizeForm = 250;
     // console.log(this.mobHeight);
   }
 
   //Parameter
 
-  // build form
-  buildForm(): void {
-    if (!this.scroll) {
-      this.scroll = {};
-    }
+  ngOnInit(): void {
+    this.sizeForm = 250;
+    this.mobHeight = (window.innerHeight - this.sizeForm) + "px";
 
-    this.reportForm = this.fb.group({
-      Filter: [this.scroll.Filter],
-      SortField: [this.scroll.SortField],
-      SortOrder: [this.scroll.SortOrder],
-      TotalRow: [this.scroll.TotalRow],
-      SDate: [this.scroll.SDate],
-      EDate: [this.scroll.EDate],
-      WhereBranch: [this.scroll.WhereBranch],
-      WhereProject: [this.scroll.WhereProject],
-      ProjectString: [""],
-      WhereWorkGroup: [this.scroll.WhereWorkGroup],
-      WorkGroupString: [""],
-      WhereWorkItem: [this.scroll.WhereWorkItem],
-      WorkItemString: [""],
-      Skip: [this.scroll.Skip],
-      Take: [this.scroll.Take],
-    });
-
-    this.reportForm.valueChanges.pipe(debounceTime(250), distinctUntilChanged())
-      .subscribe((data: any) => this.onValueChanged(data));
-
-    const ControlMoreActivities: AbstractControl | undefined = this.reportForm.get("Filter");
-    if (ControlMoreActivities) {
-      ControlMoreActivities.valueChanges
-        .pipe(
-          debounceTime(150),
-          distinctUntilChanged()).subscribe((data: any) => {
-            this.needReset = true;
-          });
-    }
+    super.ngOnInit();
   }
 
   // get request data
@@ -106,6 +74,10 @@ export class PrMasterComponent extends BaseScheduleComponent<PrAndPo,PrService> 
           { field: 'Project', header: 'JobNo.', canSort: true, width: width150, type: ColumnType.PurchaseRequest },
           { field: 'PRDateString', header: 'PrDate', canSort: true, width: width150, type: ColumnType.PurchaseRequest },
           { field: 'RequestDateString', header: 'Request', canSort: true, width: width150, type: ColumnType.PurchaseRequest },
+          // new requirement
+          { field: 'ReceivedDate', header: 'Purchase Received', width: 175, type: ColumnType.PurchaseRequest },
+          { field: 'PurchaseComment', header: 'Purchase Comment', width: 175, type: ColumnType.PurchaseRequest },
+
           { field: 'ItemCode', header: 'Item-Code', width: width250, type: ColumnType.PurchaseRequest },
           { field: 'ItemName', header: 'Item-Name', canSort: true, width: width350, type: ColumnType.PurchaseRequest },
           { field: 'PurUom', header: 'Uom', width: width100, type: ColumnType.PurchaseRequest },

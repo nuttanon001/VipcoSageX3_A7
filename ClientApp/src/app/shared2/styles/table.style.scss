@@ -2,8 +2,8 @@
 
 .mat-table {
   overflow: auto;
-  /*height: calc(#{$master-vh} - 190px);
-  width: calc(#{$master-vw} - 50px);*/
+  height: calc(#{$master-vh} - 190px);
+  width: calc(#{$master-vw} - 50px);
 }
 
 .header-table {

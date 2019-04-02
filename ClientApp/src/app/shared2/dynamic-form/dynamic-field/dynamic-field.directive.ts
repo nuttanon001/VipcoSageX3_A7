@@ -16,6 +16,7 @@ import { RadiobuttonComponent } from "../radiobutton/radiobutton.component";
 import { CheckboxComponent } from "../checkbox/checkbox.component";
 import { InputClickComponent } from "../input/input-click.component";
 import { TextAreaComponent } from "../text-area/text-area.component";
+import { DateEventComponent } from '../date/date-event.component';
 import { FieldConfig } from "../field-config.model";
 
 const componentMapper = {
@@ -25,6 +26,7 @@ const componentMapper = {
   button: ButtonComponent,
   select: SelectComponent,
   date: DateComponent,
+  dateevent: DateEventComponent,
   radiobutton: RadiobuttonComponent,
   checkbox: CheckboxComponent
 };

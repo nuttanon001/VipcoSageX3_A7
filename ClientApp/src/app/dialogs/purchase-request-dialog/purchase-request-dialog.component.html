@@ -1,0 +1,24 @@
+<div class="master-dialog-vh">
+  <H5 style="color:cadetblue">Purchase Request(s) Information</H5>
+  <div class="child-container">
+    <div class="center-content">
+      <div *ngIf="!data.multi;else ElseBlock">
+        <app-purchase-request-table-dialog (returnSelected)="onSelectedValue($event)"></app-purchase-request-table-dialog>
+      </div>
+      <ng-template #ElseBlock>
+        <app-purchase-request-table-dialog (returnSelectesd)="onSelectedValues($event)" [isMultiple]="true"></app-purchase-request-table-dialog>
+      </ng-template>
+    </div>
+    <div class="right-content">
+      <button mat-mini-fab color="primary" (click)="onSelectedClick()" matTooltip="primary"
+              [disabled]="(!getValue && !getValues)">
+        <mat-icon>done</mat-icon>
+      </button>
+      <hr />
+      <button mat-mini-fab color="warn" (click)="onCancelClick()"
+              matTooltip="close dialog">
+        <mat-icon>clear</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

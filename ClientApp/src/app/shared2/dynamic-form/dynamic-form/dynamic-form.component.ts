@@ -13,7 +13,7 @@ import {
   Validators,
   FormControl
 } from "@angular/forms";
-import { FieldConfig, Validator } from "../field-config.model";
+import { FieldConfig, Validator, ReturnValue } from "../field-config.model";
 import { debounceTime, distinctUntilChanged } from "rxjs/operators";
 
 
@@ -23,7 +23,9 @@ import { debounceTime, distinctUntilChanged } from "rxjs/operators";
   template: `
     <form [formGroup]="form" (submit)="onSubmit($event)">
       <ng-container *ngFor="let field of fields;">
-        <ng-container *ngIf="!field.hidden"  dynamicField [field]="field" [group]="form">
+        <ng-container *ngIf="field">
+          <ng-container *ngIf="!field.hidden" dynamicField [field]="field" [group]="form">
+          </ng-container>
         </ng-container>
       </ng-container>
     </form>
@@ -32,7 +34,7 @@ import { debounceTime, distinctUntilChanged } from "rxjs/operators";
 })
 export class DynamicFormComponent implements OnInit {
   @Input() fields: FieldConfig[] = [];
-  @Output() submit: EventEmitter<any> = new EventEmitter<any>();
+  @Output() submit: EventEmitter<ReturnValue<any>> = new EventEmitter<ReturnValue<any>>();
   form: FormGroup;
   get value() {
     return this.form.value;
@@ -52,11 +54,15 @@ export class DynamicFormComponent implements OnInit {
     this.form.valueChanges.pipe(debounceTime(250), distinctUntilChanged())
       .subscribe(data => {
         if (!this.form) { return; }
-        if (this.form.valid) {
-          this.submit.emit(this.form.getRawValue());
-        } else {
+        this.submit.emit({
+          value: this.form.getRawValue(),
+          valid: this.form.valid
+        });
+
+        if (!this.form.valid) {
           this.validateAllFormFields(this.form);
-        }
+
+        } 
       });
   }
   // on Submit
@@ -64,7 +70,7 @@ export class DynamicFormComponent implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     if (this.form.valid) {
-      this.submit.emit(this.form.getRawValue());
+      this.submit.emit({ value: this.form.getRawValue(), valid: true });
     } else {
       this.validateAllFormFields(this.form);
     }
@@ -73,12 +79,14 @@ export class DynamicFormComponent implements OnInit {
   createControl() {
     const group = this.fb.group({});
     this.fields.forEach(field => {
-      if (field.type === "button") return;
-      const control = this.fb.control(
-        { value: field.value, disabled: field.disabled},
-        this.bindValidations(field.validations || [])
-      );
-      group.addControl(field.name, control);
+      if (field) {
+        if (field.type === "button") { return; }
+        const control = this.fb.control(
+          { value: field.value, disabled: field.disabled },
+          this.bindValidations(field.validations || [])
+        );
+        group.addControl(field.name, control);
+      }
     });
     return group;
   }
@@ -87,7 +95,9 @@ export class DynamicFormComponent implements OnInit {
     if (validations.length > 0) {
       const validList = [];
       validations.forEach(valid => {
-        validList.push(valid.validator);
+        if (valid) {
+          validList.push(valid.validator);
+        }
       });
       return Validators.compose(validList);
     }

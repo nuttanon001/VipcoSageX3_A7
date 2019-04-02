@@ -6,12 +6,14 @@ import { FormGroup } from '@angular/forms';
   selector: 'app-text-area',
   template: `
  <mat-form-field [formGroup]="group" class="app-text-area">
-    <textarea matInput [formControlName]="field.name" [placeholder]="field.label">
+    <textarea matInput [formControlName]="field.name" [placeholder]="field.label" [readonly]="field.readonly">
     </textarea>
     <ng-container *ngFor="let validation of field.validations;" ngProjectAs="mat-error">
-      <mat-error *ngIf="group.get(field.name).hasError(validation.name)">
-        {{validation.message}}
-      </mat-error>
+      <ng-container *ngIf="validation">
+        <mat-error *ngIf="group.get(field.name).hasError(validation.name)">
+          {{validation.message}}
+        </mat-error>
+      </ng-container>
     </ng-container>
   </mat-form-field>
   `,

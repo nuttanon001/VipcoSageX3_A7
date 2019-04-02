@@ -6,7 +6,7 @@ import { TaskStatusDetailService } from '../shared/task-status-detail.service';
 import { DialogsService } from 'src/app/dialogs/shared/dialogs.service';
 import { BaseInfoComponent } from 'src/app/shared2/baseclases/base-info-component';
 import { TaskStatusDetail } from '../shared/task-status-detail.model';
-import { typeField, inputType, ValidatorField } from 'src/app/shared2/dynamic-form/field-config.model';
+import { typeField, inputType, ValidatorField, ReturnValue } from 'src/app/shared2/dynamic-form/field-config.model';
 import { Validators } from '@angular/forms';
 import { ShareService } from 'src/app/shared2/share.service';
 import { Workgroup } from 'src/app/dimension-datas/shared/workgroup.model';
@@ -158,23 +158,23 @@ export class TaskStatusInfoComponent extends BaseInfoComponent<TaskStatusMaster,
     if (this.isValid) {
       if (this.InfoValue.TaskStatusDetails.length > 0) {
         // debug here
-        console.log("communicateService", JSON.stringify(this.InfoValue));
+        // console.log("communicateService", JSON.stringify(this.InfoValue));
         this.communicateService.toParent(this.InfoValue);
       }
     }
   }
 
   // submit dynamic form
-  submitDynamicForm(InfoValue?: TaskStatusMaster): void {
+  submitDynamicForm(InfoValue?: ReturnValue<TaskStatusMaster>): void {
     if (InfoValue) {
       if (!this.denySave) {
-        let template = InfoValue;
+        let template = InfoValue.value;
         // Template
         for (let key in template) {
           // console.log(key);
           this.InfoValue[key] = template[key];
         }
-        this.isValid = true;
+        this.isValid = InfoValue.valid;
         //debug here
         // console.log(JSON.stringify(InfoValue));
         this.SetCommunicatetoParent();
@@ -213,6 +213,7 @@ export class TaskStatusInfoComponent extends BaseInfoComponent<TaskStatusMaster,
     if (this.denySave) {
       return;
     }
+
     if (Item.option === 1 && !Item.data) {
 
       this.serviceDialogs.dialogSelectEmployee(this.viewCon, { info: undefined, multi: true, option: false })

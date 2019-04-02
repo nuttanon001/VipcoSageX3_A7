@@ -5,7 +5,7 @@ import {
 } from "@angular/common/http";
 // rxjs
 import { Observable } from "rxjs";
-import { catchError, retry, tap } from "rxjs/operators";
+import { catchError, retry, tap ,shareReplay} from "rxjs/operators";
 // models
 import { ScrollData } from "../basemode/scroll-data.model";
 import { Scroll } from "../basemode/scroll.model";
@@ -65,14 +65,14 @@ export abstract class BaseRestService<Model>{
   /** GET Models from the server */
   getAll(): Observable<any|Array<Model>> {
     return this.http.get<Array<Model>>(this.baseUrl)
-      .pipe(catchError(this.handleError("Get models.", new Array<Model>())));
+      .pipe(shareReplay(),catchError(this.handleError("Get models.", new Array<Model>())));
   }
   /** get one with key number */
   getOneKeyNumber(value: Model): Observable<Model> {
     // Add safe, URL encoded search parameter if there is a search term
     const options = value ? { params: new HttpParams().set("key", value[this.keyName].toString()) } : {};
     return this.http.get<Model>(this.baseUrl + "GetKeyNumber/", options)
-      .pipe(catchError(this.handleError("Get model with key", <Model>{} )));
+      .pipe(shareReplay(),catchError(this.handleError("Get model with key", <Model>{} )));
   }
   /** get one with key string */
   getOneKeyString(value: Model): Observable<Model> {
@@ -80,14 +80,14 @@ export abstract class BaseRestService<Model>{
     const options = value ? { params: new HttpParams().set("key", value[this.keyName]) } : {};
 
     return this.http.get<Model>(this.baseUrl + "GetKeyString/", options)
-      .pipe(catchError(this.handleError("Get model with key", <Model>{})));
+      .pipe(shareReplay(),catchError(this.handleError("Get model with key", <Model>{})));
   }
 
   /** get auto complate */
   getAutoComplate(): Observable<Array<string>> {
     let url: string = `${this.baseUrl}GetAutoComplate/`;
     return this.http.get<Array<string>>(url)
-      .pipe(catchError(this.handleError("Get auto complate string", new Array<string>())));
+      .pipe(shareReplay(),catchError(this.handleError("Get auto complate string", new Array<string>())));
   }
 
   /** get by master id */
@@ -97,7 +97,7 @@ export abstract class BaseRestService<Model>{
 
     let url: string = this.baseUrl + subAction;
     return this.http.get<Array<Model>>(url, options)
-      .pipe(catchError(this.handleError("Get details by master key", new Array<Model>())));
+      .pipe(shareReplay(),catchError(this.handleError("Get details by master key", new Array<Model>())));
   }
 
   /** get by master id */
@@ -107,7 +107,7 @@ export abstract class BaseRestService<Model>{
 
     let url: string = this.baseUrl + subAction;
     return this.http.get<Array<Model>>(url, options)
-      .pipe(catchError(this.handleError("Get details by master key", new Array<Model>())));
+      .pipe(shareReplay(),catchError(this.handleError("Get details by master key", new Array<Model>())));
   }
 
   /** get all with scroll data */
@@ -115,7 +115,7 @@ export abstract class BaseRestService<Model>{
     // console.log(this.baseUrl + subAction);
 
     return this.http.post<ScrollData<Model>>(this.baseUrl + subAction, JSON.stringify(scroll), httpOptions)
-      .pipe(catchError(this.handleError("Get models for scroll component", <ScrollData<Model>>{})));
+      .pipe(shareReplay(),catchError(this.handleError("Get models for scroll component", <ScrollData<Model>>{})));
   }
 
   // get all with page
@@ -131,7 +131,7 @@ export abstract class BaseRestService<Model>{
     // console.log("Data is:", JSON.stringify(nObject));
 
     return this.http.post<Model>(this.baseUrl, JSON.stringify(nObject), httpOptions)
-      .pipe(catchError(this.handleError("Add model", <Model>{})));
+      .pipe(shareReplay(),catchError(this.handleError("Add model", <Model>{})));
   }
 
  
@@ -141,7 +141,7 @@ export abstract class BaseRestService<Model>{
     return this.http.put<Model>(this.baseUrl, JSON.stringify(uObject), {
       headers: httpOptions.headers,
       params: new HttpParams().set("key", uObject[this.keyName].toString())
-    }).pipe(catchError(this.handleError("Update model", <Model>{})));
+    }).pipe(shareReplay(),catchError(this.handleError("Update model", <Model>{})));
   }
 
   /** update with key string */
@@ -149,7 +149,7 @@ export abstract class BaseRestService<Model>{
     return this.http.put<Model>(this.baseUrl, JSON.stringify(uObject), {
       headers: httpOptions.headers,
       params: new HttpParams().set("key", uObject[this.keyName])
-    }).pipe(catchError(this.handleError("Update model", <Model>{})));
+    }).pipe(shareReplay(),catchError(this.handleError("Update model", <Model>{})));
   }
 
   /** put update model */
@@ -165,7 +165,7 @@ export abstract class BaseRestService<Model>{
       params: new HttpParams().set("key",value[this.keyName])
     };
     return this.http.delete(this.baseUrl, httpOptions1)
-      .pipe(catchError(this.handleError("Delete model")));
+      .pipe(shareReplay(),catchError(this.handleError("Delete model")));
   }
 
   getTextFile(filename: string) {

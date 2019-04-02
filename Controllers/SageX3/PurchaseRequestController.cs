@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VipcoSageX3.Models.SageX3;
+using VipcoSageX3.Models.SageX3Extends;
 using VipcoSageX3.Services;
 using VipcoSageX3.Services.ExcelExportServices;
 using VipcoSageX3.ViewModels;
@@ -25,6 +26,7 @@ namespace VipcoSageX3.Controllers.SageX3
     [ApiController]
     public class PurchaseRequestController : GenericSageX3Controller<Prequisd>
     {
+        private readonly IRepositorySageX3Extend<PurchaseExtend> repositoryExtendPr;
         private readonly IRepositorySageX3<Cacce> repositoryDim;
         private readonly IRepositorySageX3<Prequiso> repositoryPRLink;
         private readonly IRepositorySageX3<Porderq> repositoryPOLine;
@@ -54,6 +56,7 @@ namespace VipcoSageX3.Controllers.SageX3
             IRepositorySageX3<Porder> repoPoHeader,
             IRepositorySageX3<Cacce> repoDim,
             IRepositorySageX3<Itmmaster> repoItem,
+            IRepositorySageX3Extend<PurchaseExtend> repoExtendPr,
             IRepositoryDapperSageX3<PurchaseRequestAndOrderViewModel> repoPrAndPo,
             IRepositoryDapperSageX3<PurchaseReceiptViewModel> repoPrq,
             IRepositoryDapperSageX3<PurchaseSubReportViewModel> repoPoSubReport,
@@ -65,6 +68,7 @@ namespace VipcoSageX3.Controllers.SageX3
             ExcelWorkBookService workBookService,
             IMapper mapper) : base(repo, mapper)
         {
+            this.repositoryExtendPr = repoExtendPr;
             // Repository SageX3
             this.repositoryDim = repoDim;
             this.repositoryDimLink = repoDimLink;
@@ -466,6 +470,21 @@ namespace VipcoSageX3.Controllers.SageX3
                                                         OR LOWER([POD].[ITMREF_0]) LIKE '%{keyword}%')";
                 }
 
+                if (scroll.CheckOption.HasValue)
+                {
+                    if (scroll.CheckOption.Value)
+                    {
+                        var overDue = DateTime.Today.AddDays(-2);
+                        sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + 
+                            $@"POH.CLEFLG_0 != 2 AND '{overDue.ToString("yyyy-MM-dd")}' > POD.EXTRCPDAT_0 AND 
+                            [POD].[POHNUM_0] NOT IN (SELECT [PRC].[POHNUM_0] 
+                                                    FROM [VIPCO].[PRECEIPTD] PRC 
+                                                    WHERE [PRC].[POHNUM_0] = [POD].[POHNUM_0] 
+                                                        AND [PRC].[POPLIN_0] = [POD].[POPLIN_0] 
+                                                        AND [PRC].[POQSEQ_0] = [POD].[POQSEQ_0])";
+                    }
+                }
+
                 if (!string.IsNullOrEmpty(scroll.WhereBranch))
                     sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"DIM.CCE_0 = '{scroll.WhereBranch}'";
 
@@ -715,6 +734,21 @@ namespace VipcoSageX3.Controllers.SageX3
                 scroll.TotalRow = result.TotalRow;
 
                 string sReceipt = "";
+                // Get purchase request no
+                var purchaseReqs = dbData.Select(x => x.PrNumber).Distinct().ToList();
+                var purchaseExtends = (await this.repositoryExtendPr.GetToListAsync(
+                                                    x => new PurchaseExtend
+                                                    {
+                                                        PRNumber = x.PRNumber,
+                                                        PrReceivedDate = x.PrReceivedDate,
+                                                        PrReceivedTime = x.PrReceivedTime,
+                                                        Remark = x.Remark,
+                                                        PurchaseLineExtends = x.PurchaseLineExtends.Select(z => new PurchaseLineExtend
+                                                        {
+                                                            PrLine = z.PrLine,
+                                                            Remark = z.Remark,
+                                                        }).ToList()
+                                                    }, x => purchaseReqs.Contains(x.PRNumber))).ToList();
                 foreach (var item in dbData)
                 {
                     item.ToDate = DateTime.Today.AddDays(-2);
@@ -729,8 +763,19 @@ namespace VipcoSageX3.Controllers.SageX3
                     if (item?.ItemWeight > 0)
                         item.PrWeight = (double)item.ItemWeight * item.QuantityPur;
 
+                    // New requirement 30/03/19
+                    var prExline = purchaseExtends.FirstOrDefault(x => x.PRNumber.ToLower() == item.PrNumber.ToLower());
+                    if (prExline != null)
+                    {
+                        item.ReceivedDate = prExline.PrReceivedDate == null ? "" : prExline.PrReceivedDate.Value.ToString("dd/MM/yy ") + prExline.PrReceivedTime;
+                        // Get comment from purchase request line extend
+                        var comment = prExline.PurchaseLineExtends.FirstOrDefault(x => x.PrLine == item.PrLine);
+                        item.PurchaseComment = comment == null ? "" : comment.Remark;
+                    }
+
                     #region Receipt
 
+                    #region QuerySub
                     sReceipt = $@"SELECT	--STOJOU
                                             STO.LOT_0 AS [HeatNumber],
                                             STO.SLO_0 AS [HeatNumber2],
@@ -775,6 +820,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                             AND PRC.POQSEQ_0 = @PoSequence
                                             AND ((STO.VCRTYPREG_0 = 0 AND STO.REGFLG_0 = 1) OR (STO.VCRTYPREG_0 = 17 AND STO.REGFLG_0 = 1))
                                 ORDER BY	PRC.POPLIN_0 ASC";
+                    #endregion
 
                     var receipts = await this.repositoryPrq.GetListEntites(sReceipt, new { item.PoNumber, item.PoLine, item.PoSequence });
                     if (receipts.Any())
@@ -1480,6 +1526,10 @@ namespace VipcoSageX3.Controllers.SageX3
                         new DataColumn("JobNo", typeof(string)),
                         new DataColumn("PrDate",typeof(string)),
                         new DataColumn("RequestDate",typeof(string)),
+                        // New Requirement 30/03/19
+                        new DataColumn("PurchaseReceived",typeof(string)),
+                        new DataColumn("PurchaseComment",typeof(string)),
+                        
                         new DataColumn("Item-Code",typeof(string)),
                         new DataColumn("Item-Name",typeof(string)),
                         new DataColumn("Uom",typeof(string)),
@@ -1534,6 +1584,8 @@ namespace VipcoSageX3.Controllers.SageX3
                                     item.Project,
                                     item.PRDateString,
                                     item.RequestDateString,
+                                    item.ReceivedDate,
+                                    item.PurchaseComment,
                                     item.ItemCode,
                                     item.ItemName,
                                     item.PurUom,
@@ -1580,6 +1632,8 @@ namespace VipcoSageX3.Controllers.SageX3
                                    item.Project,
                                    item.PRDateString,
                                    item.RequestDateString,
+                                   item.ReceivedDate,
+                                   item.PurchaseComment,
                                    item.ItemCode,
                                    item.ItemName,
                                    item.PurUom,
@@ -2027,5 +2081,6 @@ namespace VipcoSageX3.Controllers.SageX3
         */
 
         #endregion No use
+      
     }
 }

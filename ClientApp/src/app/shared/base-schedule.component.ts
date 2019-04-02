@@ -73,6 +73,7 @@ export abstract class BaseScheduleComponent<Model, Service extends BaseRestServi
       EDate: [this.scroll.EDate],
       SDate2: [this.scroll.SDate2],
       EDate2: [this.scroll.EDate2],
+      CheckOption: [this.scroll.CheckOption],
       BranchString: [""],
       WhereBranch: [this.scroll.WhereBranch],
       WhereBranchs: [this.scroll.WhereBranchs],

@@ -7,6 +7,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CustomMaterialModule } from '../shared/customer-material.module';
 import { PaymentCenterComponent } from '../payments/payment-center.component';
 import { PaymentMasterComponent } from './payment-master/payment-master.component';
+import { RetentionComponent } from './retention/retention.component';
 
 @NgModule({
   imports: [
@@ -17,7 +18,8 @@ import { PaymentMasterComponent } from './payment-master/payment-master.componen
   ],
   declarations: [
     PaymentCenterComponent,
-    PaymentMasterComponent
+    PaymentMasterComponent,
+    RetentionComponent
   ],
   providers: [
     PaymentService

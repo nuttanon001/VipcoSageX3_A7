@@ -1,6 +1,6 @@
 import { OnInit, Output, Input, EventEmitter } from "@angular/core";
 import { BaseModel } from "../basemode/base-model.model";
-import { FieldConfig, GroupField } from "../dynamic-form/field-config.model";
+import { FieldConfig, GroupField, ReturnValue } from "../dynamic-form/field-config.model";
 
 export abstract class BaseInfoDialogComponent<Model extends BaseModel>
   implements OnInit{
@@ -58,15 +58,15 @@ export abstract class BaseInfoDialogComponent<Model extends BaseModel>
   }
 
   // submit dynamic form
-  submitDynamicForm(InfoValue?: Model): void {
+  submitDynamicForm(InfoValue?: ReturnValue<Model>): void {
     if (InfoValue) {
       if (!this.denySave) {
-        let template = InfoValue;
+        let template = InfoValue.value;
         // Template
         for (let key in template) {
           this.InfoValue[key] = template[key];
         }
-        this.isValid = true;
+        this.isValid = InfoValue.valid;
         this.SubmitOrCancel.emit({ data: this.InfoValue, force: false });
       }
     }

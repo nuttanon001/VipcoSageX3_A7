@@ -13,7 +13,7 @@ import {
   Validators,
   FormControl
 } from "@angular/forms";
-import { FieldConfig, Validator, GroupField } from "../field-config.model";
+import { FieldConfig, Validator, GroupField, ReturnValue } from "../field-config.model";
 import { debounceTime, distinctUntilChanged } from "rxjs/operators";
 
 @Component({
@@ -43,7 +43,7 @@ import { debounceTime, distinctUntilChanged } from "rxjs/operators";
 export class DynamicGroupFormComponent implements OnInit {
   @Input() fields: FieldConfig[] = [];
   @Input() groups: GroupField[] = [];
-  @Output() submit: EventEmitter<any> = new EventEmitter<any>();
+  @Output() submit: EventEmitter<ReturnValue<any>> = new EventEmitter<ReturnValue<any>>();
   form: FormGroup;
   get value() {
     return this.form.value;
@@ -63,11 +63,15 @@ export class DynamicGroupFormComponent implements OnInit {
     this.form.valueChanges.pipe(debounceTime(250), distinctUntilChanged())
       .subscribe(data => {
         if (!this.form) { return; }
-        if (this.form.valid) {
-          this.submit.emit(this.form.getRawValue());
-        } else {
+        this.submit.emit({
+          value: this.form.getRawValue(),
+          valid: this.form.valid
+        });
+
+        if (!this.form.valid) {
           this.validateAllFormFields(this.form);
-        }
+
+        } 
       });
   }
   // on Submit
@@ -75,7 +79,7 @@ export class DynamicGroupFormComponent implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     if (this.form.valid) {
-      this.submit.emit(this.form.getRawValue());
+      this.submit.emit({ value: this.form.getRawValue(), valid: true });
     } else {
       this.validateAllFormFields(this.form);
     }

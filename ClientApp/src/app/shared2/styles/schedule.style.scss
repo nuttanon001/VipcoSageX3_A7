@@ -1,3 +1,4 @@
+
 .master-container {
   display: flex;
   flex-direction: column;
@@ -6,34 +7,30 @@
   height: calc(100vh - 80px);
 }
 
-.child-row-container {
+.header {
   display: flex;
   flex-direction: row;
-}
+  flex-flow: row wrap;
+  text-align: center;
 
-.child-col-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.bottom-container {
-  order: 2;
-  display: flex;
-  flex-grow: 0;
-  flex-direction: column;
-}
-
-.form-content {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex-wrap: wrap;
-  flex-grow: 0;
-
-  i {
-    margin-left: 15px;
+  mat-form-field {
+    width: 200px;
+    min-height: 50px;
+    margin: 5px;
   }
 }
+
+.detail {
+  max-height: 90%;
+  align-items: flex-start;
+  align-self: flex-start;
+}
+
+.detail-center {
+  max-height: 90%;
+  justify-content: center;
+}
+
 
 .material-icons {
   font-size: 24px;

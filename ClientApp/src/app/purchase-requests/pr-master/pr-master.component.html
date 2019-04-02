@@ -23,6 +23,7 @@
                formControlName="WorkGroupString">
       </mat-form-field>
     </div>
+
     <div>
       <i class="fa fa-cogs" aria-hidden="true"></i>
       <mat-form-field>
@@ -31,17 +32,23 @@
                formControlName="WorkItemString">
       </mat-form-field>
     </div>
+
+    <div class="header">
+      <i class="fa fa-calendar-times-o" aria-hidden="true"></i>
+      <mat-checkbox formControlName="CheckOption">Only outstanding </mat-checkbox>
+    </div>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <!--<div>
-      <i aria-hidden="true"><mat-icon>group</mat-icon></i>
-      <mat-form-field>
-        <mat-select placeholder="Selected work of quailty control"
-                    id="WorkGroupQuailtyControlId" formControlName="WorkGroupQuailtyControlId">
-          <mat-option *ngFor="let workGroupQc of workGroupQcs" [value]="workGroupQc.WorkGroupQualityControlId">
-            {{ workGroupQc.Name }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>-->
+    <i aria-hidden="true"><mat-icon>group</mat-icon></i>
+    <mat-form-field>
+      <mat-select placeholder="Selected work of quailty control"
+                  id="WorkGroupQuailtyControlId" formControlName="WorkGroupQuailtyControlId">
+        <mat-option *ngFor="let workGroupQc of workGroupQcs" [value]="workGroupQc.WorkGroupQualityControlId">
+          {{ workGroupQc.Name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>-->
     <div>
       <button mat-mini-fab color="warn" (click)="resetFilter()"
               matTooltipPosition="left" matTooltip="Reset all filter">

@@ -1,6 +1,9 @@
 import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { FieldConfig } from "../field-config.model";
+import { Subscription } from 'rxjs';
+import { ShareService } from '../../share.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: "app-select",
@@ -11,6 +14,11 @@ import { FieldConfig } from "../field-config.model";
         {{item.label}}
       </mat-option>
     </mat-select>
+    <ng-container *ngFor="let validation of field.validations;" ngProjectAs="mat-error">
+      <mat-error *ngIf="group.get(field.name).hasError(validation.name)">
+        {{validation.message}}
+      </mat-error>
+    </ng-container>
   </mat-form-field>
 `,
   styles: [`
@@ -44,6 +52,33 @@ import { FieldConfig } from "../field-config.model";
 export class SelectComponent implements OnInit {
   field: FieldConfig;
   group: FormGroup;
-  constructor() { }
-  ngOnInit() { }
+  subscription: Subscription;
+
+  constructor(
+    private serviceShared: ShareService
+  ) { }
+  ngOnInit() {
+    this.subscription = this.serviceShared.toChild$.pipe(filter((item) => this.field.name == item.name)).
+      subscribe(item => {
+        // console.log(item);
+        // Patch Value
+        if (this.field.continue) {
+          const value = this.group.get(this.field.name).value;
+          this.group.get(this.field.name).patchValue((value ? value + "," : "") + item.value);
+        } else {
+          this.group.get(this.field.name).patchValue(item.value);
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
+
+  onSendToParent(name?: any): void {
+    //debug here
+    this.serviceShared.toParent({ name: name });
+  }
 }

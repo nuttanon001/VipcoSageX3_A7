@@ -53,6 +53,11 @@ export const ModulesList: Array<MenuModel> = [{
           icon: "account_balance_wallet"
         },
         {
+          label: "Retention",
+          link: "/payment/retention",
+          icon: "chrome_reader_mode"
+        },
+        {
           label: "Issue & Journal",
           link: "/mics-account",
           icon: "card_membership"
@@ -94,6 +99,12 @@ export const ModulesList: Array<MenuModel> = [{
       link: "/purchase-request/po-outstanding",
       icon: "fiber_smart_record"
     },
+    {
+      label: "PurchaseRequest Received",
+      link: "/purchase-extend",
+      icon: "event"
+    }
+
   ]
 },
 //{

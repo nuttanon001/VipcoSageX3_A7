@@ -61,8 +61,9 @@ export class BaseTableComponent<Model, Service extends BaseRestService<Model>> i
   // Angular NgOnInit
   ngOnInit() {
     this.templateSelect = new Array;
-    if (this.searchBox && this.searchBox.onlyCreate2) {
+    if (this.searchBox) {
       this.searchBox.onlyCreate2 = this.isOnlyCreate;
+      // console.log(this.searchBox.onlyCreate2);
     }
     // If the user changes the sort order, reset back to the first page.
     this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
@@ -77,9 +78,6 @@ export class BaseTableComponent<Model, Service extends BaseRestService<Model>> i
       .pipe(
         startWith({}),
         switchMap(() => {
-          //debuf here
-          // console.log("search2", this.searchBox.search2);
-
           this.isLoadingResults = true;
           let scroll: Scroll = {
             Skip: this.paginator.pageIndex * this.paginator.pageSize,

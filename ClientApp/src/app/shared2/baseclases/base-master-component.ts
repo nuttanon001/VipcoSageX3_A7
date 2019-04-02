@@ -91,6 +91,7 @@ export abstract class BaseMasterComponent
   // on submit
   onSubmit(): void {
     this.canSave = false;
+    this.onLoading = true;
     if (this.displayValue.CreateDate) {
       this.onUpdateToDataBase(this.displayValue);
     } else {
@@ -170,11 +171,11 @@ export abstract class BaseMasterComponent
         }
       },
       (error: any) => {
+        this.onLoading = false;
         console.error(error);
         this.dialogsService.error("Failed !",
           "Save failed with the following error: Invalid Identifier code !!!", this.viewContainerRef);
-      }
-    );
+      }, () => this.onLoading = false);
   }
 
   // on update data
@@ -198,11 +199,11 @@ export abstract class BaseMasterComponent
         }
       },
       (error: any) => {
+        this.onLoading = false;
         console.error(error);
         this.dialogsService.error("Failed !",
           "Save failed with the following error: Invalid Identifier code !!!", this.viewContainerRef);
-      }
-    );
+      }, () => this.onLoading = false);
   }
 
   // on reload table

@@ -30,7 +30,12 @@
     min-height: 50px;
     margin: 5px;
   }
+
+  .mat-checkbox {
+    margin:auto;
+  }
 }
+
 
 :host /deep/ .ui-widget {
   font-family: "Roboto", "Trebuchet MS", Arial, Helvetica, sans-serif;

@@ -29,6 +29,10 @@ import { Customer } from 'src/app/dimension-datas/shared/customer.model';
 import { CustomerDialogComponent } from '../customer-dialog/customer-dialog.component';
 import { Branch } from 'src/app/dimension-datas/shared/branch.model';
 import { BranchDialogComponent } from '../branch-dialog/branch-dialog.component';
+import { Partner } from 'src/app/dimension-datas/shared/partner.model';
+import { PartnerDialogComponent } from '../partner-dialog/partner-dialog.component';
+import { PurchaseRequestDialogComponent } from '../purchase-request-dialog/purchase-request-dialog.component';
+import { PurchaseRequestPure } from 'src/app/purchase-extends/shared/purchase-request-pure.model';
 
 @Injectable()
 export class DialogsService {
@@ -266,4 +270,42 @@ export class DialogsService {
     return dialogRef.afterClosed();
   }
 
+  /**
+* Partner
+* @param viewContainerRef
+* @param type = mode 0:fastSelected
+*/
+  public dialogSelectPartner(viewContainerRef: ViewContainerRef, type: number = 0): Observable<Partner | Array<Partner>> {
+    let dialogRef: MatDialogRef<PartnerDialogComponent>;
+    let config: MatDialogConfig = new MatDialogConfig();
+
+    // config
+    config.viewContainerRef = viewContainerRef;
+    config.data = type;
+    // config.height = this.height;
+    // config.width= this.width;
+    config.hasBackdrop = true;
+
+    // open dialog
+    dialogRef = this.dialog.open(PartnerDialogComponent, config);
+    return dialogRef.afterClosed();
+  }
+
+  /**
+ * @param viewContainerRef
+ * @param data = info: PurchaseExtend
+ */
+  public dialogSelectPurchaseRequest(viewContainerRef: ViewContainerRef, data: DialogInfo<PurchaseRequestPure>): Observable<PurchaseRequestPure | Array<PurchaseRequestPure>> {
+    let dialogRef: MatDialogRef<PurchaseRequestDialogComponent>;
+    let config: MatDialogConfig = new MatDialogConfig();
+
+    // config
+    config.viewContainerRef = viewContainerRef;
+    config.data = data;
+    config.hasBackdrop = true;
+
+    // open dialog
+    dialogRef = this.dialog.open(PurchaseRequestDialogComponent, config);
+    return dialogRef.afterClosed();
+  }
 }

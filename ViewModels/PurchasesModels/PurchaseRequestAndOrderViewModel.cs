@@ -204,5 +204,11 @@ namespace VipcoSageX3.ViewModels
 
         #endregion
 
+        #region Option
+
+        public string ReceivedDate { get; set; }
+        public string PurchaseComment { get; set; }
+
+        #endregion
     }
 }

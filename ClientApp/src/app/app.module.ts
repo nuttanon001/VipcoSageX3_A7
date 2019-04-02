@@ -22,6 +22,8 @@ import { HttpErrorHandler } from "./shared/http-error-handler.service";
 import { JwtInterceptorService } from './core/auth/jwt-interceptor.service';
 import { ErrorInterceptorService } from './core/auth/error-interceptor.service';
 import { NavMenuMk2Component } from './core/nav-menu-mk2/nav-menu-mk2.component';
+// Modules
+// import { SharedModule } from './shared2/shared.module';
 
 @NgModule({
   declarations: [
@@ -44,6 +46,7 @@ import { NavMenuMk2Component } from './core/nav-menu-mk2/nav-menu-mk2.component'
     // Modules
     DialogsModule,
     CustomMaterialModule,
+    // SharedModule,
     // Router
     RouterModule.forRoot([
       { path: "", redirectTo: "home", pathMatch: "full" },
@@ -81,6 +84,11 @@ import { NavMenuMk2Component } from './core/nav-menu-mk2/nav-menu-mk2.component'
       {
         path: "allowed-employee",
         loadChildren: "./allowed-employees/allowed-employee.module#AllowedEmployeeModule",
+        canActivate: [AuthGuard]
+      },
+      {
+        path: "purchase-extend",
+        loadChildren: "./purchase-extends/purchase-extend.module#PurchaseExtendModule",
         canActivate: [AuthGuard]
       },
       {

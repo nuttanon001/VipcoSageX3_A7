@@ -22,6 +22,7 @@ export interface Scroll {
   WhereRange12?: string;
   WhereRange21?: string;
   WhereRange22?: string;
+  CheckOption?: boolean;
   SDate?: Date;
   EDate?: Date;
   SDate2?: Date;

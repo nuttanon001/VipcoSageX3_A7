@@ -1,0 +1,74 @@
+<div class="mat-elevation-z8">
+  <div class="mobile-label">
+    <button mat-icon-button color="primary" (click)="onActionClick(undefined,1)"
+            [disabled]="readOnly" matTooltip="Create">
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
+  <mat-table #table [dataSource]="dataSource" matSort matSortDisableClear>
+    <!-- Generic column definition -->
+    <ng-container *ngFor="let column of columns" [matColumnDef]="column.columnField">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>{{ column.columnName }}</mat-header-cell>
+      <!--<mat-cell *matCellDef="let row">{{ column.cell(row) }}</mat-cell>-->
+      <ng-container>
+        <mat-cell *matCellDef="let row">
+          <ng-container *ngIf="column.canEdit;else ElseRow">
+            <ng-container [ngSwitch]="column.columnField">
+              <!--Remark-->
+              <mat-form-field *ngSwitchCase="'Remark'">
+                <input type="text" matInput [disabled]="readOnly"
+                       #inputBox3 (blur)="onBlurText(inputBox3.value,row)"
+                       [(ngModel)]="row[column.columnField]"
+                       (click)="$event.stopPropagation()" />
+              </mat-form-field>
+            </ng-container>
+          </ng-container>
+          <ng-template #ElseRow>
+            <span class="mobile-label">{{ column.columnName }}:</span>
+            <span [innerHtml]="column.cell(row)"></span>
+          </ng-template>
+          <!--
+            <ng-container *ngIf="column.columnField === 'Description' || column.columnField === 'Remark';else ElseRow">
+              <mat-form-field>
+                <input type="text" matInput [disabled]="readOnly"
+                        #inputBox (blur)="onBlurText(inputBox.value,row)"
+                        [(ngModel)]="row[column.columnField]"
+                        (click)="$event.stopPropagation()">
+              </mat-form-field>
+            </ng-container>
+            <ng-template #ElseRow>
+              {{ column.cell(row) }}
+            </ng-template>
+          -->
+        </mat-cell>
+      </ng-container>
+    </ng-container>
+
+    <!-- Command Column -->
+    <ng-container matColumnDef="Command">
+      <mat-header-cell *matHeaderCellDef>
+        <button mat-icon-button color="primary" (click)="onActionClick(undefined,1)"
+                [disabled]="readOnly" matTooltip="Create">
+          <mat-icon>update</mat-icon>
+        </button>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <!--<div>
+          <button mat-icon-button color="warn" (click)="onActionClick(row,0)"
+                  [disabled]="readOnly" matTooltip="Remove">
+            <mat-icon>clear</mat-icon>
+          </button>
+        </div>-->
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+    <!-- No more highlight select row
+    [ngClass]="{'mat-row-highlight': selectedRow === row}"
+        -->
+    <mat-row *matRowDef="let row; columns: displayedColumns;"
+             (click)="selection.toggle(row)"
+             style="cursor:pointer"></mat-row>
+  </mat-table>
+</div>
+

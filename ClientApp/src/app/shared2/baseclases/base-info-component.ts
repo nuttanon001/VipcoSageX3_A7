@@ -5,7 +5,7 @@ import { Subscription } from "rxjs";
 import { BaseRestService } from "./base-rest.service";
 import { BaseCommunicateService } from "./base-communicate.service";
 import { BaseModel } from "../basemode/base-model.model";
-import { FieldConfig, GroupField } from "../dynamic-form/field-config.model";
+import { FieldConfig, GroupField, ReturnValue } from "../dynamic-form/field-config.model";
 
 export abstract class BaseInfoComponent<
   Model extends BaseModel,
@@ -64,7 +64,7 @@ export abstract class BaseInfoComponent<
   // on valid data
   abstract SetCommunicatetoParent(): void;
   // submit form dynamic
-  abstract submitDynamicForm(InfoValue?: Model): void;
+  abstract submitDynamicForm(InfoValue?: ReturnValue<Model>): void;
   // event from component
   abstract FromComponents(): void;
 }

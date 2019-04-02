@@ -1,0 +1,24 @@
+<div class="master-dialog-vh">
+  <H5 style="color:cadetblue">Selected Partner(s)</H5>
+  <div class="child-container">
+    <div class="center-content ">
+      <div *ngIf="mode === 0;else ElseBlock">
+        <app-partner-table-dialog (returnSelected)="onSelectedValue($event)"></app-partner-table-dialog>
+      </div>
+      <ng-template #ElseBlock>
+        <app-partner-table-dialog (returnSelectesd)="onSelectedValues($event)" [isMultiple]="true"></app-partner-table-dialog>
+      </ng-template>
+    </div>
+    <div class="right-content mr-1">
+      <button mat-mini-fab color="primary" (click)="onSelectedClick()" matTooltip="primary"
+              [disabled]="(!getValue && !getValues)">
+        <mat-icon>done</mat-icon>
+      </button>
+      <hr />
+      <button mat-mini-fab color="warn" (click)="onCancelClick()"
+              matTooltip="close dialog">
+        <mat-icon>clear</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>
