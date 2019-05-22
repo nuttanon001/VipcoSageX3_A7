@@ -33,4 +33,17 @@ export class PurchaseExtendMasterComponent
   onReloadData(): void {
     this.tableComponent.reloadData();
   }
+
+  onReportClick(): void {
+    this.dialogsService.dialogDatePicker(this.viewContainerRef, 1)
+      .subscribe(datePicker => {
+        if (datePicker) {
+          this.onLoading = true;
+          this.service.getXlsx({SDate:datePicker.SDate,EDate:datePicker.EDate}).subscribe(data => {
+            // console.log(data);
+            this.onLoading = false;
+          }, () => this.onLoading = false, () => this.onLoading = false);
+        }
+      });
+  }
 }

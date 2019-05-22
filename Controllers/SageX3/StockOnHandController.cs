@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using RtfPipe;
 using System;
 using System.Collections.Generic;
@@ -902,12 +903,12 @@ namespace VipcoSageX3.Controllers.SageX3
                 // Range Catetory
                 if (!string.IsNullOrEmpty(Scroll.WhereRange21))
                 {
-                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"ITM.TCLCOD_0 >= '{Scroll.WhereRange11}'";
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"ITM.TCLCOD_0 >= '{Scroll.WhereRange21}'";
                 }
 
                 if (!string.IsNullOrEmpty(Scroll.WhereRange22))
                 {
-                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"ITM.TCLCOD_0 <= '{Scroll.WhereRange12}'";
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"ITM.TCLCOD_0 <= '{Scroll.WhereRange22}'";
                 }
 
                 // Where Date Range
@@ -992,6 +993,7 @@ namespace VipcoSageX3.Controllers.SageX3
                 var sqlCommnad = new SqlCommandViewModel()
                 {
                     SelectCommand = $@"	STJ.ITMREF_0 AS [ItemNo],
+                                        STJ.VCRNUM_0 AS [OrderNo],
                                         ITM.ITMDES1_0 AS [ItemName],
                                         TXT.TEXTE_0 AS [TextName],
                                         STJ.STU_0 AS [Uom],
@@ -1013,8 +1015,8 @@ namespace VipcoSageX3.Controllers.SageX3
                                             ON TXT.CODE_0 = ITM.PURTEX_0 ",
                     WhereCommand = sWhere,
                     OrderCommand = sSort,
-                    GroupCommand = $@" STJ.ITMREF_0,ITM.ITMDES1_0,
-                                        TXT.TEXTE_0, STJ.STU_0,
+                    GroupCommand = $@" STJ.ITMREF_0,ITM.ITMDES1_0,STJ.VCRNUM_0,
+                                        TXT.TEXTE_0,STJ.STU_0,
                                         STJ.CCE_0,STJ.CCE_2,
                                         STJ.CCE_1,STJ.CCE_3 "
                 };
@@ -1371,28 +1373,182 @@ namespace VipcoSageX3.Controllers.SageX3
                         var memory = new MemoryStream();
                         using (var wb = this.excelWbService.Create())
                         {
+                            var hasData = MapDatas.GroupBy(z => new { z.WorkGroup, z.WorkGroupName, z.Project }).ToList();
+                            var temp = new List<string>();
+                            foreach (var wg in hasData.OrderBy(x => x.Key.Project).ThenBy(x => x.Key.WorkGroup))
+                            {
+                                var project = wg.Key.Project.Replace("/", "_").Trim();
+                                var workGroup = wg.Key.WorkGroup.Trim();
+
+                                var ws = wb.Worksheets.Add(workGroup + "_" +project);
+                                temp.Add(workGroup+project);
+
+
+                                ws.Cell(1, 1).Value = "รายงานการเบิกใช้";
+                                ws.Cell(1, 1).DataType = XLDataType.Text;
+                                ws.Range(1, 1, 1, 7).Merge().AddToNamed("Titles");
+
+                                var StartDate = Scroll.SDate != null ? Scroll.SDate.Value.ToString("dd/MM/yy") : "-";
+                                var EndDate = Scroll.EDate != null ? Scroll.EDate.Value.ToString("dd/MM/yy") : DateTime.Today.ToString("dd/MM/yy");
+                                ws.Cell(2, 1).Value = $"วันที่ { StartDate } - { EndDate } (วันที่เริ่มงาน-วันที่จบงาน)";
+                                ws.Cell(2, 1).DataType = XLDataType.Text;
+                                ws.Range(2, 1, 2, 7).Merge().AddToNamed("Titles");
+
+                                ws.Cell(3, 1).Value = $"Project Number : {wg.Key.Project}";
+                                ws.Cell(3, 1).DataType = XLDataType.Text;
+                                ws.Range(3, 1, 3, 7).Merge().AddToNamed("Titles");
+
+                                var Branch = Scroll.WhereBranchs.Any() ? string.Join(",", Scroll.WhereBranchs) : "All";
+                                ws.Cell(4, 1).Value = $"Branch : { Branch }";
+
+                                ws.Cell(4, 1).DataType = XLDataType.Text;
+                                ws.Range(4, 1, 4, 7).Merge().AddToNamed("Titles");
+
+                                // Move to the next row (it now has the titles)
+                                var startRow = 6;
+
+                                ws.Cell(startRow, 1).Value = $"{wg.Key.WorkGroup} | {wg.Key.WorkGroupName}";
+                                ws.Range(startRow, 1, startRow, 7).Merge().AddToNamed("Titles2");
+                                var rowData = wg.GroupBy(z => new
+                                {
+                                    z.OrderNo,
+                                    z.ItemNo,
+                                    z.TextName,
+                                    z.Uom,
+                                    z.WorkItem
+                                }).Select(
+                                    x => new
+                                    {
+                                        x.Key.OrderNo,
+                                        x.Key.ItemNo,
+                                        x.Key.TextName,
+                                        x.Key.Uom,
+                                        x.Key.WorkItem,
+                                        Quantity = x.Sum(z => z.Quantity >= 0 ? z.Quantity : z.Quantity * -1),
+                                        Cost = x.Sum(z => z.TotalCost >= 0 ? z.TotalCost : z.TotalCost * -1)
+                                    }).ToList();
+
+                                var tableData = ws.Cell(startRow + 1, 1).InsertTable(rowData);
+                                tableData.ShowTotalsRow = true;
+                                tableData.Field("Cost").TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                // Just for fun let's add the text "Sum Of Income" to the totals row
+                                tableData.Field(0).TotalsRowLabel = "Sum Of Cost";
+
+                                startRow = startRow + 2 + tableData.RowCount();
+
+                                // End Line
+                                ws.Row(startRow + 1).Height = 30;
+                                ws.Row(startRow + 2).Height = 30;
+
+                                // Box1
+                                ws.Cell(startRow + 1, 1).Value = "ผู้จัดทำ/บันทึก";
+                                ws.Cell(startRow + 1, 1).DataType = XLDataType.Text;
+                                ws.Cell(startRow + 1, 1).AddToNamed("Box");
+                                ws.Cell(startRow + 2, 1).Value = "";
+                                ws.Cell(startRow + 2, 1).AddToNamed("Box");
+
+                                // Box2
+                                ws.Cell(startRow + 1, 2).Value = "ผู้ตรวจสอบ";
+                                ws.Cell(startRow + 1, 2).DataType = XLDataType.Text;
+                                ws.Cell(startRow + 1, 2).AddToNamed("Box");
+                                ws.Cell(startRow + 2, 2).Value = "";
+                                ws.Cell(startRow + 2, 2).AddToNamed("Box");
+
+                                // Box3
+                                ws.Cell(startRow + 1, 3).Value = "ผู้อนุมัติ";
+                                ws.Cell(startRow + 1, 3).DataType = XLDataType.Text;
+                                ws.Range(startRow + 1, 3, startRow + 1, 7).Merge().AddToNamed("Box");
+                                ws.Range(startRow + 2, 3, startRow + 2, 7).Merge().AddToNamed("Box");
+
+                                ws.Columns(6, 6).Style.NumberFormat.Format = "#,##0";
+                                ws.Columns(7, 7).Style.NumberFormat.Format = "#,##0.00";
+                                ws.Columns().AdjustToContents();
+
+                                ws.PageSetup.Header.Center.AddText("Page ", XLHFOccurrence.AllPages);
+                                ws.PageSetup.Header.Center.AddText(XLHFPredefinedText.PageNumber, XLHFOccurrence.AllPages);
+                                ws.PageSetup.Header.Center.AddText(" of ", XLHFOccurrence.AllPages);
+                                ws.PageSetup.Header.Center.AddText(XLHFPredefinedText.NumberOfPages, XLHFOccurrence.AllPages);
+                            }
+
+
+                            var boxStyle = wb.Style;
+                            boxStyle.Font.Bold = true;
+                            boxStyle.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            boxStyle.Border.TopBorder = XLBorderStyleValues.Thick;
+                            boxStyle.Border.TopBorderColor = XLColor.Black;
+                            boxStyle.Border.BottomBorder = XLBorderStyleValues.Thick;
+                            boxStyle.Border.BottomBorderColor = XLColor.Black;
+                            boxStyle.Border.LeftBorder = XLBorderStyleValues.Thick;
+                            boxStyle.Border.LeftBorderColor = XLColor.Black;
+                            boxStyle.Border.RightBorder = XLBorderStyleValues.Thick;
+                            boxStyle.Border.RightBorderColor = XLColor.Black;
+
+                            wb.NamedRanges.NamedRange("Box").Ranges.Style = boxStyle;
+                            // Prepare the style for the titles
+                            var titlesStyle = wb.Style;
+                            titlesStyle.Font.Bold = true;
+                            titlesStyle.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            titlesStyle.Fill.BackgroundColor = XLColor.LightSkyBlue;
+                            // Format all titles in one shot
+                            wb.NamedRanges.NamedRange("Titles").Ranges.Style = titlesStyle;
+
+                            var titlesStyle2 = titlesStyle;
+                            titlesStyle2.Fill.BackgroundColor = XLColor.LightSteelBlue;
+                            wb.NamedRanges.NamedRange("Titles2").Ranges.Style = titlesStyle2;
+
+                            wb.SaveAs(memory);
+
+                            var count = JsonConvert.SerializeObject(temp);
+                        }
+
+                        memory.Position = 0;
+                        return File(memory, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "StockOnHand.xlsx");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Message = $"Has error{ex.ToString()}";
+            }
+            return BadRequest(new { Error = Message });
+        }
+        /*
+        public async Task<IActionResult> IssusWorkGroupGetReport2([FromBody] ScrollViewModel Scroll)
+        {
+            var Message = "Data not been found.";
+            try
+            {
+                if (Scroll != null)
+                {
+                    var MapDatas = await this.GetDataIssusWorkGroup(Scroll);
+
+                    if (MapDatas.Any())
+                    {
+                        var memory = new MemoryStream();
+                        using (var wb = this.excelWbService.Create())
+                        {
                             var ws = wb.Worksheets.Add("IssueByWorkGroup");
-                  
+
                             ws.Cell(1, 1).Value = "รายงานการเบิกใช้";
                             ws.Cell(1, 1).DataType = XLDataType.Text;
-                            ws.Range(1, 1, 1, 6).Merge().AddToNamed("Titles");
+                            ws.Range(1, 1, 1, 7).Merge().AddToNamed("Titles");
 
                             var StartDate = Scroll.SDate != null ? Scroll.SDate.Value.ToString("dd/MM/yy") : "-";
                             var EndDate = Scroll.EDate != null ? Scroll.EDate.Value.ToString("dd/MM/yy") : DateTime.Today.ToString("dd/MM/yy");
                             ws.Cell(2, 1).Value = $"วันที่ { StartDate } - { EndDate } (วันที่เริ่มงาน-วันที่จบงาน)";
                             ws.Cell(2, 1).DataType = XLDataType.Text;
-                            ws.Range(2, 1, 2, 6).Merge().AddToNamed("Titles");
+                            ws.Range(2, 1, 2, 7).Merge().AddToNamed("Titles");
 
                             var Project = Scroll.WhereProjects.Any() ? string.Join(",", Scroll.WhereProjects) : "All";
                             ws.Cell(3, 1).Value = $"Project Number : {Project}";
                             ws.Cell(3, 1).DataType = XLDataType.Text;
-                            ws.Range(3, 1, 3, 6).Merge().AddToNamed("Titles");
+                            ws.Range(3, 1, 3, 7).Merge().AddToNamed("Titles");
 
                             var Branch = Scroll.WhereBranchs.Any() ? string.Join(",", Scroll.WhereBranchs) : "All";
                             ws.Cell(4, 1).Value = $"Branch : { Branch }";
 
                             ws.Cell(4, 1).DataType = XLDataType.Text;
-                            ws.Range(4, 1, 4, 6).Merge().AddToNamed("Titles");
+                            ws.Range(4, 1, 4, 7).Merge().AddToNamed("Titles");
 
                             // Move to the next row (it now has the titles)
                             var hasData = MapDatas.GroupBy(z => new { z.WorkGroup, z.WorkGroupName }).ToList();
@@ -1401,9 +1557,10 @@ namespace VipcoSageX3.Controllers.SageX3
                             foreach (var wg in hasData.OrderBy(x => x.Key.WorkGroup))
                             {
                                 ws.Cell(startRow, 1).Value = $"{wg.Key.WorkGroup} | {wg.Key.WorkGroupName}";
-                                ws.Range(startRow, 1, startRow, 6).Merge().AddToNamed("Titles2");
+                                ws.Range(startRow, 1, startRow, 7).Merge().AddToNamed("Titles2");
                                 var rowData = wg.GroupBy(z => new
                                 {
+                                    z.OrderNo,
                                     z.ItemNo,
                                     z.TextName,
                                     z.Uom,
@@ -1411,6 +1568,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                 }).Select(
                                     x => new
                                     {
+                                        x.Key.OrderNo,
                                         x.Key.ItemNo,
                                         x.Key.TextName,
                                         x.Key.Uom,
@@ -1448,8 +1606,8 @@ namespace VipcoSageX3.Controllers.SageX3
                             // Box3
                             ws.Cell(startRow + 1, 3).Value = "ผู้อนุมัติ";
                             ws.Cell(startRow + 1, 3).DataType = XLDataType.Text;
-                            ws.Range(startRow + 1, 3, startRow + 1, 6).Merge().AddToNamed("Box");
-                            ws.Range(startRow + 2, 3, startRow + 2, 6).Merge().AddToNamed("Box");
+                            ws.Range(startRow + 1, 3, startRow + 1, 7).Merge().AddToNamed("Box");
+                            ws.Range(startRow + 2, 3, startRow + 2, 7).Merge().AddToNamed("Box");
 
                             var boxStyle = wb.Style;
                             boxStyle.Font.Bold = true;
@@ -1476,8 +1634,8 @@ namespace VipcoSageX3.Controllers.SageX3
                             titlesStyle2.Fill.BackgroundColor = XLColor.LightSteelBlue;
                             wb.NamedRanges.NamedRange("Titles2").Ranges.Style = titlesStyle2;
 
-                            ws.Columns(6, 6).Style.NumberFormat.Format = "#,##0.00";
-                            ws.Columns(5, 5).Style.NumberFormat.Format = "#,##0";
+                            ws.Columns(6, 6).Style.NumberFormat.Format = "#,##0";
+                            ws.Columns(7, 7).Style.NumberFormat.Format = "#,##0.00";
                             ws.Columns().AdjustToContents();
 
                             wb.SaveAs(memory);
@@ -1494,5 +1652,6 @@ namespace VipcoSageX3.Controllers.SageX3
             }
             return BadRequest(new { Error = Message });
         }
+        */
     }
 }

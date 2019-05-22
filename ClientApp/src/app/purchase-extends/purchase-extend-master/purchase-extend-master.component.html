@@ -38,6 +38,12 @@
               [disabled]="!canSave">
         <mat-icon>save</mat-icon>
       </button>
+      <hr />
+      <button mat-mini-fab color="primary" (click)="onReportClick()"
+              matTooltipPosition="left" matTooltip="Print"
+              [disabled]="ShowDetail">
+        <mat-icon>print</mat-icon>
+      </button>
     </div>
   </div>
 </div>

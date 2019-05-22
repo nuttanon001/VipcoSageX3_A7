@@ -55,7 +55,7 @@ namespace VipcoSageX3.Services
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             userVM.Token = tokenHandler.WriteToken(token);
-
+            userVM.ValidTo = token.ValidTo;
             // remove password before returning
             userVM.PassWord = null;
 
@@ -89,7 +89,7 @@ namespace VipcoSageX3.Services
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             userVM.Token = tokenHandler.WriteToken(token);
-
+            userVM.ValidTo = token.ValidTo;
             // remove password before returning
             userVM.PassWord = null;
 

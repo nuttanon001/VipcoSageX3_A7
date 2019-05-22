@@ -8,6 +8,7 @@ import { CustomMaterialModule } from '../shared/customer-material.module';
 import { PaymentCenterComponent } from '../payments/payment-center.component';
 import { PaymentMasterComponent } from './payment-master/payment-master.component';
 import { RetentionComponent } from './retention/retention.component';
+import { PaymentSubComponent } from './payment-sub/payment-sub.component';
 
 @NgModule({
   imports: [
@@ -19,7 +20,8 @@ import { RetentionComponent } from './retention/retention.component';
   declarations: [
     PaymentCenterComponent,
     PaymentMasterComponent,
-    RetentionComponent
+    RetentionComponent,
+    PaymentSubComponent
   ],
   providers: [
     PaymentService

@@ -37,7 +37,7 @@ export abstract class BaseScheduleComponent<Model, Service extends BaseRestServi
   // ScrollData
   scroll: Scroll;
   reportForm: FormGroup;
-  rowPage: number = 15;
+  rowPage: number = 25;
   first: number = 0;
   needReset: boolean = false;
   mobHeight: any = "50px";
@@ -73,6 +73,7 @@ export abstract class BaseScheduleComponent<Model, Service extends BaseRestServi
       EDate: [this.scroll.EDate],
       SDate2: [this.scroll.SDate2],
       EDate2: [this.scroll.EDate2],
+      Where: [this.scroll.Where],
       CheckOption: [this.scroll.CheckOption],
       BranchString: [""],
       WhereBranch: [this.scroll.WhereBranch],
@@ -131,12 +132,12 @@ export abstract class BaseScheduleComponent<Model, Service extends BaseRestServi
     // event.sortField = Field name to sort with
     // event.sortOrder = Sort order as number, 1 for asc and -1 for dec
     // filters: FilterMetadata object having field as key and filter value, filter matchMode as value
-    this.rowPage = (event.rows || 15);
+    this.rowPage = (event.rows || 25);
     this.first = event.first;
     // imitate db connection over a network
     this.reportForm.patchValue({
       Skip: event.first,
-      Take: (event.rows || 15),
+      Take: (event.rows || 25),
       SortField: event.sortField,
       SortOrder: event.sortOrder,
     });

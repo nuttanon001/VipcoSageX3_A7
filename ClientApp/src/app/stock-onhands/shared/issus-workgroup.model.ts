@@ -10,7 +10,7 @@ export interface IssusWorkgroup {
   QuantityString?: string;
   UnitPriceString?: string;
   TotalCostString?: string;
-
+  OrderNo?: string;
   Quantity?: number;
   UnitPrice?: number;
   TotalCost?: number;

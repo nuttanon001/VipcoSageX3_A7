@@ -8,6 +8,7 @@ namespace VipcoSageX3.ViewModels
     public class PrOutStandingViewModel
     {
         public string PrNumber { get; set; }
+        public int? PrLine { get; set; }
         public string Project { get; set; }
         public DateTime? PrDate { get; set; }
         public string PrDateString => this.PrDate != null ? this.PrDate.Value.ToString("dd/MM/yyyy") : "-";
@@ -16,6 +17,8 @@ namespace VipcoSageX3.ViewModels
         public string Other { get; set; }
         public int? PrType { get; set; }
         public string PrTypeString => this.PrType != null ? (this.PrType == 1 ? "จัดซื้อ" : "จัดจ้าง") : "-";
+        public string ReceivedDate { get; set; }
+        public string PurchaseComment { get; set; }
         public string ItemNo { get; set; }
         public string ItemName { get; set; }
         public string TextName { get; set; }

@@ -12,6 +12,7 @@ import { Workgroup } from 'src/app/dimension-datas/shared/workgroup.model';
 import { ProjectCode } from 'src/app/dimension-datas/shared/project-code.model';
 import { Branch } from 'src/app/dimension-datas/shared/branch.model';
 import { BomLevel } from 'src/app/dimension-datas/shared/bom-level.model';
+import { Category } from 'src/app/dimension-datas/shared/category.model';
 
 @Component({
   selector: 'app-issus-workgroup',
@@ -86,6 +87,7 @@ export class IssusWorkgroupComponent extends BaseScheduleComponent<IssusWorkgrou
         this.columns = [
           { field: 'ItemNo', header: 'ItemCode', width: 175, canSort: true },
           { field: 'TextName', header: 'TextName', width: 350, canSort: true },
+          { field: 'OrderNo', header: 'OrderNo', width: 175 },
           { field: 'Branch', header: 'Branch', width: 150, canSort: true },
           { field: 'Project', header: 'Project', width: 150, canSort: true },
           { field: 'WorkItem', header: 'WorkItem', width: 150, canSort: true },
@@ -184,6 +186,22 @@ export class IssusWorkgroupComponent extends BaseScheduleComponent<IssusWorkgrou
             this.reportForm.patchValue({
               WhereWorkItems: boms ? boms.map((item) => item.BomLevelCode) : undefined,
               WorkItemString: boms ? nameBoms : undefined,
+            });
+          });
+      } else if (type === "ProductCate1") {
+        this.serviceDialogs.dialogSelectCategory(this.viewCon, 0)
+          .subscribe((cate: Category) => {
+            this.needReset = true;
+            this.reportForm.patchValue({
+              WhereRange21: cate ? cate.CategoryCode : undefined,
+            });
+          });
+      } else if (type === "ProductCate2") {
+        this.serviceDialogs.dialogSelectCategory(this.viewCon, 0)
+          .subscribe((cate: Category) => {
+            this.needReset = true;
+            this.reportForm.patchValue({
+              WhereRange22: cate ? cate.CategoryCode : undefined,
             });
           });
       }

@@ -5,6 +5,8 @@ export interface PrOutstanding {
   Other?: string;
   PrType?: number;
   PrTypeString?: number;
+  ReceivedDate?: string;
+  PurchaseComment?: string;
   PrNumber?: string;
   Project?: string;
   PrDateString?: string;

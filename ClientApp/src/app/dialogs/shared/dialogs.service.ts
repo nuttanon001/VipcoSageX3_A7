@@ -33,6 +33,7 @@ import { Partner } from 'src/app/dimension-datas/shared/partner.model';
 import { PartnerDialogComponent } from '../partner-dialog/partner-dialog.component';
 import { PurchaseRequestDialogComponent } from '../purchase-request-dialog/purchase-request-dialog.component';
 import { PurchaseRequestPure } from 'src/app/purchase-extends/shared/purchase-request-pure.model';
+import { DatePickDialogComponent } from '../date-pick-dialog/date-pick-dialog.component';
 
 @Injectable()
 export class DialogsService {
@@ -81,6 +82,26 @@ export class DialogsService {
     dialogRef.componentInstance.title = title;
     dialogRef.componentInstance.message = message;
 
+    return dialogRef.afterClosed();
+  }
+  /**
+ * Date Picker
+ * @param viewContainerRef
+ * @param type = mode 0:fastSelected
+ */
+  public dialogDatePicker(viewContainerRef: ViewContainerRef, type: number = 0): Observable<{ SDate: Date, EDate: Date}> {
+    let dialogRef: MatDialogRef<DatePickDialogComponent>;
+    let config: MatDialogConfig = new MatDialogConfig();
+
+    // config
+    config.viewContainerRef = viewContainerRef;
+    config.data = type;
+    // config.height = this.height;
+    // config.width= this.width;
+    config.hasBackdrop = true;
+
+    // open dialog
+    dialogRef = this.dialog.open(DatePickDialogComponent, config);
     return dialogRef.afterClosed();
   }
 

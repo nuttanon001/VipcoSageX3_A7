@@ -1,0 +1,20 @@
+@import "../../shared/styles/master.style.scss";
+
+.master-dialog-vh {
+  width: 550px;
+  height: 150px;
+  @include block-master;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  flex-flow: row wrap;
+  text-align: center;
+
+  mat-form-field {
+    width: 200px;
+    min-height: 50px;
+    margin: 5px;
+  }
+}

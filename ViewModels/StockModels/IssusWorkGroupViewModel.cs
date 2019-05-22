@@ -11,6 +11,7 @@ namespace VipcoSageX3.ViewModels.StockModels
         public string ItemName { get; set; }
         public string TextName { get; set; }
         public string Uom { get; set; }
+        public string OrderNo { get; set; }
         public string Branch { get; set; }
         public string Project { get; set; }
         public string WorkItem { get; set; }

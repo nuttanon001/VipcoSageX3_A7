@@ -34,12 +34,14 @@ namespace VipcoSageX3.Controllers.SageX3
         private readonly IRepositorySageX3<Bank> repositoryBank;
         private readonly IRepositoryDapperSageX3<PaymentViewModel> repositoryPayment;
         private readonly IRepositoryDapperSageX3<PaymentRetentionViewModel> repositoryRetention;
+        private readonly IRepositoryDapperSageX3<PaymentSubConViewModel> repositoryPaymentSub;
         private readonly ExcelWorkBookService excelWbService;
         private readonly IHelperService helperService;
         private readonly IHostingEnvironment hosting;
         public PaymentController(IRepositorySageX3<Paymenth> repo,
             IRepositoryDapperSageX3<PaymentViewModel> repoPayment,
             IRepositoryDapperSageX3<PaymentRetentionViewModel> repoRetention,
+            IRepositoryDapperSageX3<PaymentSubConViewModel> repoPaymentSub,
             IRepositorySageX3<Bank> repoBank,
             ExcelWorkBookService exWbService,
             IHelperService _helperService,
@@ -50,6 +52,7 @@ namespace VipcoSageX3.Controllers.SageX3
             // DapperSageX3
             this.repositoryPayment = repoPayment;
             this.repositoryRetention = repoRetention;
+            this.repositoryPaymentSub = repoPaymentSub;
             // Helper
             this.excelWbService = exWbService;
             this.helperService = _helperService;
@@ -265,7 +268,7 @@ namespace VipcoSageX3.Controllers.SageX3
                     sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") +
                                                     $@"(LOWER(PYH.NUM_0) LIKE '%{keyword}%'
                                                         OR LOWER(PYH.BPR_0) LIKE '%{keyword}%'
-                                                        OR LOWER(PYD.DESLIN_0) LIKE '%{keyword}%')
+                                                        OR LOWER(PYD.DESLIN_0) LIKE '%{keyword}%'
                                                         OR LOWER(PAN.BPRNAM_0) LIKE '%{keyword}%')";
                 }
 
@@ -403,6 +406,190 @@ namespace VipcoSageX3.Controllers.SageX3
             }
             return null;
         }
+        private async Task<List<PaymentSubConViewModel>> GetDataPaymentSub(ScrollViewModel Scroll)
+        {
+            if (Scroll != null)
+            {
+                // ACC_0 212403 Only Retention
+                string sWhere = $@" PYH.ACC_0 IN('211101','211303','212403') AND PYH.BAN_0 = '21001'";
+                string sSort = "";
+
+                #region Where
+
+                // Filter
+                var filters = string.IsNullOrEmpty(Scroll.Filter) ? new string[] { "" }
+                                    : Scroll.Filter.Split(null);
+
+                foreach (string temp in filters)
+                {
+                    if (string.IsNullOrEmpty(temp))
+                        continue;
+
+                    string keyword = temp.ToLower();
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") +
+                                                    $@"(LOWER(PYH.NUM_0) LIKE '%{keyword}%'
+                                                        OR LOWER(PYH.BPR_0) LIKE '%{keyword}%'
+                                                        OR LOWER(PAN.BPRNAM_0) LIKE '%{keyword}%')";
+                }
+
+                // Where Partner
+                if (Scroll.WhereBanks.Any())
+                {
+                    var list = new List<string>();
+
+                    foreach (var item in Scroll.WhereBanks)
+                        list.Add($"'{item}'");
+
+                    var partners = string.Join(',', list);
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"PYH.BPR_0 IN ({partners})";
+                }
+
+                // Where Project
+                if (Scroll.WhereProjects.Any())
+                {
+                    var list = new List<string>();
+
+                    foreach (var item in Scroll.WhereProjects)
+                        list.Add($"'{item}'");
+
+                    var projects = string.Join(',', list);
+                    sWhere += (string.IsNullOrEmpty(sWhere) ? " " : " AND ") + $"PYA.CCE_2 IN ({projects})";
+                }
+
+
+                if (Scroll.SDate.HasValue)
+                {
+                    sWhere +=
+                       (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PYH.ACCDAT_0 >= '{Scroll.SDate.Value.ToString("yyyy-MM-dd")}'";
+                }
+                
+                if (Scroll.EDate.HasValue)
+                {
+                    sWhere +=
+                       (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + $"PYH.ACCDAT_0 <= '{Scroll.EDate.Value.ToString("yyyy-MM-dd")}'";
+                }
+                
+                #endregion
+
+                #region Sort
+
+                switch (Scroll.SortField)
+                {
+                    case "PartnerNo":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PYH.BPR_0  DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pshnum0);
+                        else
+                            sSort = $"PYH.BPR_0  ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pshnum0);
+                        break;
+
+                    case "PartnerName":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PAN.BPRNAM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Pjth0);
+                        else
+                            sSort = $"PAN.BPRNAM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Pjth0);
+                        break;
+
+                    case "PaymentNo":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PYH.NUM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"PYH.NUM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "PaymentDateString":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PYH.ACCDAT_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"PYH.ACCDAT_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Reference":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PYD.VCRNUM_0 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"PYD.VCRNUM_0 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    case "Project":
+                        if (Scroll.SortOrder == -1)
+                            sSort = $"PYA.CCE_2 DESC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        else
+                            sSort = $"PYA.CCE_2 ASC";//QueryData = QueryData.OrderBy(x => x.PAYM.Prqdat0);
+                        break;
+
+                    default:
+                        sSort = $"PYH.NUM_0,PYH.ACCDAT_0 ASC";//QueryData = QueryData.OrderByDescending(x => x.PAYM.Prqdat0);
+                        break;
+                }
+
+                #endregion
+
+                var sqlCommnad = new SqlCommandViewModel()
+                {
+                    SelectCommand = $@"	PYH.BPR_0 AS PartnerNo
+                                        ,PYH.DES_0 AS Comment
+                                        ,PAN.BPRNAM_0 AS PartnerName
+                                        ,PYH.NUM_0 AS PaymentNo
+                                        ,PYD.VCRNUM_0 AS Reference
+                                        ,PYH.ACCDAT_0 AS PaymentDate
+                                        ,PYA.CCE_2 AS Project
+                                        ,PYD.COA_0 AS Currency
+                                        ,PYD.DENCOD_0 AS Attribute
+                                        ,PYD.VCRTYP_0 AS PayType
+                                        -- Progress
+                                        ,(CASE WHEN PYD.DENCOD_0 = 'PAY' AND PYD.VCRTYP_0 = 'ZSUB'
+                                            THEN PYD.AMTLIN_0
+                                            ELSE NULL END) AS AmountProgress
+                                        -- หัก Down Payment
+                                        ,(CASE WHEN PYD.DENCOD_0 = 'PAY' AND PYD.VCRTYP_0 = 'ZDOWN'
+                                            THEN PYD.AMTLIN_0
+                                            ELSE NULL END) AS AmountDown
+                                        -- หัก Consume
+                                        ,(CASE WHEN PYD.DENCOD_0 = 'PAY' AND PYD.VCRTYP_0 = 'SREG'
+                                            THEN PYD.AMTLIN_0
+                                            ELSE NULL END) AS AmountConsume
+                                        -- หัก Retention
+                                        ,(CASE WHEN PYD.DENCOD_0 = 'GE'
+                                            THEN PYD.AMTLIN_0
+                                            ELSE NULL END) AS AmountRetenion
+                                        ,(CASE WHEN PYD.DENCOD_0 = 'PVAT'
+                                            THEN PYD.AMTLIN_0
+                                            ELSE NULL END) AS AmountVat
+                                        ,(CASE WHEN PYD.DENCOD_0 = 'PSVAT'
+                                                THEN PYD.AMTLIN_0
+                                                ELSE NULL END) AS AmountVat2
+                                        ,(CASE WHEN PYD.DENCOD_0 = 'T3'
+                                            THEN PYD.AMTLIN_0
+                                            ELSE NULL END) AS AmountTax
+                                        ,(CASE WHEN PYD.DENCOD_0 = 'T5'
+                                                THEN PYD.AMTLIN_0
+                                                ELSE NULL END) AS AmountTax2
+                                         ,(CASE WHEN PYD.DENCOD_0 = 'RET'
+                                            THEN PYD.AMTLIN_0
+                                            ELSE NULL END) AS AmountDeduct ",
+                    FromCommand = $@" [VIPCO].[PAYMENTH] PYH
+                                        INNER JOIN [VIPCO].[PAYMENTD] PYD
+                                        ON PYH.NUM_0 = PYD.NUM_0
+                                            AND PYD.DENCOD_0 IN ('PAY','PVAT','PSVAT','T3','T5','GE','RET')
+                                            AND PYD.VCRTYP_0 IN ('SREG','ZSUB','ZDOWN','')
+                                        LEFT OUTER JOIN [VIPCO].[PAYMENTA] PYA
+                                        ON PYD.NUM_0 = PYA.NUM_0
+                                            AND PYD.LIN_0 = PYA.LIN_0
+                                        LEFT OUTER JOIN [VIPCO].[BPARTNER] PAN
+                                        ON PYH.BPR_0 = PAN.BPRNUM_0 ",
+                    WhereCommand = sWhere,
+                    OrderCommand = sSort
+                };
+
+                var result = await this.repositoryPaymentSub.GetEntitiesAndTotal(sqlCommnad, new { Skip = Scroll.Skip ?? 0, Take = Scroll.Take ?? 50 });
+                var dbData = result.Entities;
+                Scroll.TotalRow = result.TotalRow;
+
+                return dbData;
+            }
+            return null;
+        }
+
 
         // POST: api/Payment/GetScroll
         //[Authorize(Policy = "SuperUser")]
@@ -489,6 +676,7 @@ namespace VipcoSageX3.Controllers.SageX3
             return BadRequest(new { Message });
         }
 
+        #region Retention
 
         [HttpPost("RetentionSubGetScroll")]
         public async Task<IActionResult> RetentionSubGetScroll([FromBody] ScrollViewModel Scroll)
@@ -541,7 +729,7 @@ namespace VipcoSageX3.Controllers.SageX3
                                 // Plus index
                                 indexRow += 2;
 
-                                var jobs = partner.GroupBy(x => new { x.Project,x.Branch } ).ToList();
+                                var jobs = partner.GroupBy(x => new { x.Project, x.Branch }).ToList();
                                 foreach (var job in jobs.OrderBy(x => x.Key.Project))
                                 {
                                     // Add Group Job and Branch
@@ -608,5 +796,148 @@ namespace VipcoSageX3.Controllers.SageX3
             }
             return BadRequest(new { Error = Message });
         }
+
+        #endregion
+
+        #region PaymentSub
+
+        [HttpPost("PaymentSubGetScroll")]
+        public async Task<IActionResult> PaymentSubGetScroll([FromBody] ScrollViewModel Scroll)
+        {
+            var message = "Data not been found.";
+            try
+            {
+                var MapDatas = await this.GetDataPaymentSub(Scroll);
+                return new JsonResult(new ScrollDataViewModel<PaymentSubConViewModel>(Scroll, MapDatas), this.DefaultJsonSettings);
+            }
+            catch (Exception ex)
+            {
+                message = $"Has error {ex.ToString()}";
+            }
+            return BadRequest(new { message });
+        }
+        
+        [HttpPost("PaymentSubGetReport")]
+        public async Task<IActionResult> PaymentSubGetReport([FromBody] ScrollViewModel Scroll)
+        {
+            
+            var Message = "Data not been found.";
+            try
+            {
+                if (Scroll != null)
+                {
+                    
+                    var MapDatas = await this.GetDataPaymentSub(Scroll);
+
+                    if (MapDatas.Any())
+                    {
+                        var memory = new MemoryStream();
+                        using (var wb = this.excelWbService.Create())
+                        {
+                            var ws = wb.Worksheets.Add("PaymentSub");
+
+                            ws.Cell(1, 1).Value = "SUB CONTRACTOR PAYMENT";
+                            ws.Cell(1, 1).DataType = XLDataType.Text;
+                            ws.Range(1, 1, 1, 13).Merge().AddToNamed("Titles");
+
+                            ws.Cell(2, 1).Value = $"ประจำงวดวันที่ {(Scroll.SDate.HasValue ? Scroll.SDate.Value.ToString("dd/MMM/yyyy") : "")}";
+                            ws.Cell(2, 1).DataType = XLDataType.Text;
+                            ws.Range(2, 1, 2, 13).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                            // Move to the next row (it now has the titles)
+                            var hasData = MapDatas.GroupBy(z => new { z.PartnerNo, z.PartnerName }).ToList();
+
+                            var indexRow = 3;
+                            foreach (var partner in hasData)
+                            {
+                                // Add Partner Name
+                                ws.Cell(indexRow, 1).Value = $"{partner.Key.PartnerNo} | {partner.Key.PartnerName}";
+                                ws.Range(indexRow, 1, indexRow, 13).Merge().AddToNamed("Titles");
+                                ws.Row(indexRow).Height = 25;
+                                // Plus index
+                                indexRow += 1;
+
+                                var payments = partner.GroupBy(x => new { x.PaymentNo }).ToList();
+                                foreach (var payment in payments.OrderBy(x => x.Key.PaymentNo))
+                                {
+                                    // Add Group Job and Branch
+                                    ws.Cell(indexRow, 1).Value = $"Doc No: {payment.Key.PaymentNo}";
+                                    ws.Range(indexRow, 1, indexRow, 13).Merge();
+                                    // Plus index
+                                    indexRow++;
+
+                                    // Add list of data
+                                    var rowData = payment.GroupBy(x => new { x.Project }).Select(x => new PaymentSubReportViewModel
+                                    {
+                                        InvoiceNo = string.Join(",", x.Where(z => !string.IsNullOrEmpty(z.Reference.Trim())).Select(z => z.Reference)),
+                                        Job = x.Key.Project,
+                                        Progress = x.Sum(z => (z.AmountProgress ?? 0) < 0 ? (z.AmountProgress ?? 0) * -1 : (z.AmountProgress ?? 0)),
+                                        DownPayment = x.Sum(z => (z.AmountDown ?? 0) < 0 ? (z.AmountDown ?? 0) * -1 : (z.AmountDown ?? 0)),
+                                        Consume = x.Sum(z => (z.AmountConsume ?? 0) < 0 ? (z.AmountConsume ?? 0) * -1 : (z.AmountConsume ?? 0)),
+                                        Retention = x.Sum(z => (z.AmountRetenion ?? 0) < 0 ? (z.AmountRetenion ?? 0) * -1 : (z.AmountRetenion ?? 0)),
+                                        Deduct = x.Sum(z => (z.AmountDeduct ?? 0) < 0 ? (z.AmountDeduct ?? 0) * -1 : (z.AmountDeduct ?? 0)),
+                                        Vat = x.Sum(z => (z.AmountVat ?? 0) < 0 ? (z.AmountVat ?? 0) * -1 : (z.AmountVat ?? 0)),
+                                        ProgressVat = x.Sum(z => (z.AmountVat2 ?? 0) < 0 ? (z.AmountVat2 ?? 0) * -1 : (z.AmountVat2 ?? 0)),
+                                        Tax = (x.Sum(z => (z.AmountTax ?? 0) < 0 ? (z.AmountTax ?? 0) * -1 : (z.AmountTax ?? 0))) + (x.Sum(z => (z.AmountTax2 ?? 0) < 0 ? (z.AmountTax2 ?? 0) * -1 : (z.AmountTax2 ?? 0)))
+                                    }).ToList();
+                                    // Add table by list of data
+                                    var tableData = ws.Cell(indexRow, 1).InsertTable(rowData);
+                                    tableData.ShowTotalsRow = true;
+                                    // Set table header style
+                                    var tableHeader = tableData.HeadersRow();
+                                    tableHeader.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                                    tableHeader.Style.Font.Bold = true;
+
+
+                                    tableData.Field(2).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                    tableData.Field(3).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                    tableData.Field(4).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                    tableData.Field(5).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                    tableData.Field(6).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                    tableData.Field(7).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                    tableData.Field(8).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                    tableData.Field(9).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                    tableData.Field(10).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                    tableData.Field(11).TotalsRowFunction = XLTotalsRowFunction.Sum;
+                                    tableData.Field(12).TotalsRowFunction = XLTotalsRowFunction.Sum;
+
+                                    // Just for fun let's add the text "Sum Of Income" to the totals row
+                                    tableData.Field(0).TotalsRowLabel = $"Total";
+                                    tableData.Theme = XLTableTheme.TableStyleMedium9;
+
+                                    indexRow += tableData.RowCount() + 1;
+                                }
+                                indexRow++;
+                            }
+
+                            // Prepare the style for the titles
+                            var titlesStyle = wb.Style;
+                            titlesStyle.Font.Bold = true;
+                            titlesStyle.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            titlesStyle.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                            titlesStyle.Fill.BackgroundColor = XLColor.LightSteelBlue;
+                            // Format all titles in one shot
+                            wb.NamedRanges.NamedRange("Titles").Ranges.Style = titlesStyle;
+
+                            ws.Columns(2, 13).Style.NumberFormat.Format = "#,##0.00";
+                            ws.Columns().AdjustToContents();
+
+                            wb.SaveAs(memory);
+                        }
+
+                        memory.Position = 0;
+                        return File(memory, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Retention.xlsx");
+                    }
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                Message = $"Has error{ex.ToString()}";
+            }
+            return BadRequest(new { Error = Message });
+        }
+        
+        #endregion
+
     }
 }

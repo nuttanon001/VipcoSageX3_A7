@@ -58,6 +58,11 @@ export const ModulesList: Array<MenuModel> = [{
           icon: "chrome_reader_mode"
         },
         {
+          label: "SubPayment",
+          link: "/payment/payment-sub",
+          icon: "multiline_chart"
+        },
+        {
           label: "Issue & Journal",
           link: "/mics-account",
           icon: "card_membership"

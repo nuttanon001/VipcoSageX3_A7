@@ -4,24 +4,25 @@ import { FormBuilder } from '@angular/forms';
 import { Component, OnInit, ViewContainerRef } from '@angular/core';
 // Components
 import { BaseScheduleComponent } from 'src/app/shared/base-schedule.component';
-// Services
-import { PaymentService } from '../shared/payment.service';
-import { AuthService } from 'src/app/core/auth/auth.service';
-import { DialogsService } from 'src/app/dialogs/shared/dialogs.service';
 // Models
 import { Scroll } from 'src/app/shared/scroll.model';
-import { Retention } from '../shared/retention.model';
+import { PaymentSub } from '../shared/payment-sub.model';
 import { ScrollData } from 'src/app/shared/scroll-data.model';
 import { Branch } from 'src/app/dimension-datas/shared/branch.model';
 import { Partner } from 'src/app/dimension-datas/shared/partner.model';
 import { ProjectCode } from 'src/app/dimension-datas/shared/project-code.model';
+// Services
+import { AuthService } from 'src/app/core/auth/auth.service';
+import { PaymentService } from '../shared/payment.service';
+import { DialogsService } from 'src/app/dialogs/shared/dialogs.service';
 
 @Component({
-  selector: 'app-retention',
-  templateUrl: './retention.component.html',
-  styleUrls: ['./retention.component.scss']
+  selector: 'app-payment-sub',
+  templateUrl: './payment-sub.component.html',
+  styleUrls: ['./payment-sub.component.scss']
 })
-export class RetentionComponent extends BaseScheduleComponent<Retention, PaymentService> {
+export class PaymentSubComponent
+  extends BaseScheduleComponent<PaymentSub, PaymentService> {
   constructor(
     service: PaymentService,
     fb: FormBuilder,
@@ -44,7 +45,7 @@ export class RetentionComponent extends BaseScheduleComponent<Retention, Payment
   ngOnInit(): void {
     this.buildForm();
     if (!this.currentUser || this.currentUser.LevelUser < 1) {
-      if (!this.currentUser || !this.currentUser.SubLevel || this.currentUser.SubLevel !== 3 ) {
+      if (!this.currentUser || !this.currentUser.SubLevel || this.currentUser.SubLevel !== 3) {
         this.serviceDialogs.error("Waining Message", "Access is restricted. please contact administrator !!!", this.viewCon).
           subscribe(() => this.router.navigate(["login"]));
       } else {
@@ -63,8 +64,8 @@ export class RetentionComponent extends BaseScheduleComponent<Retention, Payment
       return;
     }
 
-    this.service.getAllWithScroll(schedule, "RetentionSubGetScroll/")
-      .subscribe((dbData: ScrollData<Retention>) => {
+    this.service.getAllWithScroll(schedule, "PaymentSubGetScroll/")
+      .subscribe((dbData: ScrollData<PaymentSub>) => {
         if (!dbData && !dbData.Data) {
           this.totalRecords = 0;
           this.columns = new Array;
@@ -86,13 +87,17 @@ export class RetentionComponent extends BaseScheduleComponent<Retention, Payment
           { field: 'PartnerNo', header: 'PartnerNo', width: 175, canSort: true },
           { field: 'PartnerName', header: 'PartnerName', width: 250, canSort: true },
           { field: 'PaymentNo', header: 'PaymentNo', width: 175, canSort: true },
+          { field: 'Comment', header: 'Comment', width: 175, canSort: true },
           { field: 'PaymentDateString', header: 'Date', width: 150, canSort: true },
-          { field: 'DescriptionLine', header: 'Information', width: 250, canSort: true },
-          { field: 'Branch', header: 'Branch', width: 150, canSort: true },
+          { field: 'Reference', header: 'Reference', width: 175, canSort: true },
           { field: 'Project', header: 'Project', width: 150, canSort: true },
+          { field: 'AmountProgressString', header: 'Retenion', width: 150 },
+          { field: 'AmountDownString', header: 'Down', width: 150 },
+          { field: 'AmountConsumeString', header: 'Consume', width: 150 },
           { field: 'AmountRetenionString', header: 'Retenion', width: 150 },
+          { field: 'AmountVatString', header: 'Vat', width: 150 },
+          { field: 'AmountTaxString', header: 'Tax', width: 150 },
           { field: 'AmountDeductString', header: 'Deduct', width: 150 },
-          { field: 'Comment', header: 'Comment', width: 120 },
         ];
 
         if (dbData.Data) {
@@ -140,15 +145,6 @@ export class RetentionComponent extends BaseScheduleComponent<Retention, Payment
               BankString: partners ? namePartners : undefined,
             });
           });
-      } else if (type === "Branch") {
-        this.serviceDialogs.dialogSelectBranch(this.viewCon, 1)
-          .subscribe((branch: Branch) => {
-            this.needReset = true;
-            this.reportForm.patchValue({
-              WhereBranch: branch ? branch.BranchCode : undefined,
-              BranchString: branch ? branch.BranchName : undefined,
-            });
-          });
       } else if (type === "Project") {
         this.serviceDialogs.dialogSelectProject(this.viewCon, 1)
           .subscribe((projects: Array<ProjectCode>) => {
@@ -164,7 +160,7 @@ export class RetentionComponent extends BaseScheduleComponent<Retention, Payment
               ProjectString: projects ? nameProject : undefined,
             });
           });
-      } 
+      }
     }
   }
 
@@ -173,8 +169,7 @@ export class RetentionComponent extends BaseScheduleComponent<Retention, Payment
     if (this.reportForm) {
       let scorll = this.reportForm.getRawValue() as Scroll;
 
-      if (!scorll.WhereProjects && !scorll.Filter && !scorll.WhereBanks && !scorll.SDate && !scorll.EDate
-        && !scorll.WhereBranch) {
+      if (!scorll.WhereProjects && !scorll.Filter && !scorll.WhereBanks && !scorll.SDate) {
         this.serviceDialogs.error("Error Message", `Please select some filter befor export.`, this.viewCon);
         return;
       }
@@ -182,7 +177,7 @@ export class RetentionComponent extends BaseScheduleComponent<Retention, Payment
       this.loading = true;
       scorll.Skip = 0;
       scorll.Take = this.totalRecords;
-      this.service.getXlsx(scorll, "RetentionSubGetReport/").subscribe(data => {
+      this.service.getXlsx(scorll, "PaymentSubGetReport/").subscribe(data => {
         // console.log(data);
         this.loading = false;
       }, () => this.loading = false, () => this.loading = false);
@@ -196,6 +191,7 @@ export class RetentionComponent extends BaseScheduleComponent<Retention, Payment
 
   // On Update row group
   updateRowGroupMetaData() {
+    console.log("updateRowGroupMetaData");
     this.rowGroupMetadata = {};
     if (this.datasource) {
       for (let i = 0; i < this.datasource.length; i++) {
@@ -215,4 +211,5 @@ export class RetentionComponent extends BaseScheduleComponent<Retention, Payment
       }
     }
   }
+
 }

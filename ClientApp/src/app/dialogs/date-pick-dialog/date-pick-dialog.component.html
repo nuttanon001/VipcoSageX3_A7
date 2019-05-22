@@ -1,0 +1,36 @@
+<div class="master-dialog-vh">
+  <H5 style="color:cadetblue">Date Picker(s)</H5>
+  <div class="child-container">
+    <div class="center-content ">
+      <form [formGroup]="dialogForm" class="header">
+        <div>
+          <i class="fa fa-calendar-o" aria-hidden="true"></i>
+          <mat-form-field>
+            <input matInput [matDatepicker]="SDate" placeholder="Choose from a date"
+                   formControlName="SDate" [max]="dialogForm.controls.EDate.value">
+            <mat-datepicker-toggle matSuffix [for]="SDate"></mat-datepicker-toggle>
+            <mat-datepicker #SDate></mat-datepicker>
+          </mat-form-field>
+          &nbsp;&ndash;&nbsp;
+          <mat-form-field>
+            <input matInput [matDatepicker]="EDate" placeholder="Choose to a date"
+                   formControlName="EDate" [min]="dialogForm.controls.SDate.value">
+            <mat-datepicker-toggle matSuffix [for]="EDate"></mat-datepicker-toggle>
+            <mat-datepicker #EDate></mat-datepicker>
+          </mat-form-field>
+        </div>
+      </form>
+    </div>
+    <div class="right-content mr-1">
+      <button mat-mini-fab color="primary" (click)="onSelectedClick()" matTooltip="primary"
+              [disabled]="(!datePick)">
+        <mat-icon>done</mat-icon>
+      </button>
+      <hr />
+      <button mat-mini-fab color="warn" (click)="onCancelClick()"
+              matTooltip="close dialog">
+        <mat-icon>clear</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

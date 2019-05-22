@@ -40,6 +40,7 @@ import { PartnerDialogComponent } from './partner-dialog/partner-dialog.componen
 import { PartnerTableDialogComponent } from './partner-dialog/partner-table-dialog/partner-table-dialog.component';
 import { PurchaseRequestDialogComponent } from './purchase-request-dialog/purchase-request-dialog.component';
 import { PurchaseRequestTableDialogComponent } from './purchase-request-dialog/purchase-request-table-dialog/purchase-request-table-dialog.component';
+import { DatePickDialogComponent } from './date-pick-dialog/date-pick-dialog.component';
 
 @NgModule({
   imports: [
@@ -79,6 +80,7 @@ import { PurchaseRequestTableDialogComponent } from './purchase-request-dialog/p
     PartnerTableDialogComponent,
     PurchaseRequestDialogComponent,
     PurchaseRequestTableDialogComponent,
+    DatePickDialogComponent,
   ],
   providers: [
     DialogsService,
@@ -111,6 +113,7 @@ import { PurchaseRequestTableDialogComponent } from './purchase-request-dialog/p
     PartnerTableDialogComponent,
     PurchaseRequestDialogComponent,
     PurchaseRequestTableDialogComponent,
+    DatePickDialogComponent,
   ],
 })
 export class DialogsModule { }

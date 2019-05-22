@@ -33,9 +33,18 @@
       </mat-form-field>
     </div>
 
-    <div class="header">
+    <!--<div class="header">
       <i class="fa fa-calendar-times-o" aria-hidden="true"></i>
       <mat-checkbox formControlName="CheckOption">Only outstanding </mat-checkbox>
+    </div>-->
+    <div>
+      <mat-form-field>
+        <mat-select placeholder="More option to filter" formControlName="Where">
+          <mat-option>None</mat-option>
+          <mat-option value="1">Only purchase order outstanding</mat-option>
+          <mat-option value="2">Purchase request delay over 7 day(s)</mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <!--<div>
@@ -66,7 +75,7 @@
   <div class="detail">
     <table *ngIf="!needReset" id="table1">
       <p-table [first]="first" [columns]="columns" [value]="datasource" [lazy]="true" (onLazyLoad)="loadDataLazy($event)"
-               [paginator]="true" [rows]="rowPage" [rowsPerPageOptions]="[15,25,50]"
+               [paginator]="true" [rows]="rowPage" [rowsPerPageOptions]="[25,50,100]"
                [totalRecords]="totalRecords" [loading]="loading" [scrollable]="true" [scrollHeight]="mobHeight"  [style]="{width:'98vw'}">
         <ng-template pTemplate="colgroup" let-columns>
           <colgroup>

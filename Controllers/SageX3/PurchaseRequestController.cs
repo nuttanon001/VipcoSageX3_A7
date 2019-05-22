@@ -470,9 +470,11 @@ namespace VipcoSageX3.Controllers.SageX3
                                                         OR LOWER([POD].[ITMREF_0]) LIKE '%{keyword}%')";
                 }
 
-                if (scroll.CheckOption.HasValue)
+
+                if (!string.IsNullOrEmpty(scroll.Where))
                 {
-                    if (scroll.CheckOption.Value)
+                    // Only outstanding purchaseorder
+                    if (scroll.Where == "1")
                     {
                         var overDue = DateTime.Today.AddDays(-2);
                         sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") + 
@@ -482,6 +484,13 @@ namespace VipcoSageX3.Controllers.SageX3
                                                     WHERE [PRC].[POHNUM_0] = [POD].[POHNUM_0] 
                                                         AND [PRC].[POPLIN_0] = [POD].[POPLIN_0] 
                                                         AND [PRC].[POQSEQ_0] = [POD].[POQSEQ_0])";
+                    }
+                    // Only purchase order delay over 7 days
+                    else if (scroll.Where == "2")
+                    {
+                        var delay = DateTime.Today.AddDays(-7);
+                        sWhere += (string.IsNullOrEmpty(sWhere) ? "WHERE " : " AND ") +
+                            $@"PRH.PRQDAT_0 <= '{delay.ToString("yyyy-MM-dd")}' AND PRH.CLEFLG_0 != 2 AND PRO.POHNUM_0 IS NULL";
                     }
                 }
 
@@ -735,6 +744,7 @@ namespace VipcoSageX3.Controllers.SageX3
 
                 string sReceipt = "";
                 // Get purchase request no
+                // New requirement 30/03/19
                 var purchaseReqs = dbData.Select(x => x.PrNumber).Distinct().ToList();
                 var purchaseExtends = (await this.repositoryExtendPr.GetToListAsync(
                                                     x => new PurchaseExtend
@@ -1181,6 +1191,7 @@ namespace VipcoSageX3.Controllers.SageX3
                 var sqlCommnad = new SqlCommandViewModel()
                 {
                     SelectCommand = $@"	PRD.PSHNUM_0 AS [PrNumber],
+                                        PRD.PSDLIN_0 AS [PrLine],
                                         PRH.PJTH_0 AS [Project],
                                         PRH.PRQDAT_0 AS [PrDate],
                                         PRD.EXTRCPDAT_0 AS [RequestDate],
@@ -1232,6 +1243,23 @@ namespace VipcoSageX3.Controllers.SageX3
                 var dbData = result.Entities;
                 Scroll.TotalRow = result.TotalRow;
 
+                // Get purchase request no
+                // New requirement 03/04/19
+                var purchaseReqs = dbData.Select(x => x.PrNumber).Distinct().ToList();
+                var purchaseExtends = (await this.repositoryExtendPr.GetToListAsync(
+                                                    x => new PurchaseExtend
+                                                    {
+                                                        PRNumber = x.PRNumber,
+                                                        PrReceivedDate = x.PrReceivedDate,
+                                                        PrReceivedTime = x.PrReceivedTime,
+                                                        Remark = x.Remark,
+                                                        PurchaseLineExtends = x.PurchaseLineExtends.Select(z => new PurchaseLineExtend
+                                                        {
+                                                            PrLine = z.PrLine,
+                                                            Remark = z.Remark,
+                                                        }).ToList()
+                                                    }, x => purchaseReqs.Contains(x.PRNumber))).ToList();
+
                 foreach (var item in dbData)
                 {
                     if (!string.IsNullOrEmpty(item.TextName))
@@ -1241,6 +1269,21 @@ namespace VipcoSageX3.Controllers.SageX3
                     }
                     else
                         item.TextName = item.ItemName;
+
+                    // New requirement 03/04/19
+                    var prExline = purchaseExtends.FirstOrDefault(x => x.PRNumber.ToLower() == item.PrNumber.ToLower());
+                    if (prExline != null)
+                    {
+                        item.ReceivedDate = prExline.PrReceivedDate == null ? "" : prExline.PrReceivedDate.Value.ToString("dd/MM/yy ") + prExline.PrReceivedTime;
+                        // Get comment from purchase request line extend
+                        var comment = prExline.PurchaseLineExtends.FirstOrDefault(x => x.PrLine == item.PrLine);
+                        item.PurchaseComment = comment == null ? "" : comment.Remark;
+                    }
+                    else
+                    {
+                        item.ReceivedDate = "";
+                        item.PurchaseComment = "";
+                    }
                 }
 
                 return dbData;
@@ -1838,6 +1881,8 @@ namespace VipcoSageX3.Controllers.SageX3
                                 item.RequestDateString,
                                 item.Other,
                                 item.PrTypeString,
+                                item.ReceivedDate,
+                                item.PurchaseComment,
                                 item.ItemNo,
                                 (string.IsNullOrEmpty(item.TextName) ? item.ItemName : item.TextName),
                                 item.Uom,
