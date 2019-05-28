@@ -57,6 +57,7 @@ export class SelectComponent implements OnInit {
   constructor(
     private serviceShared: ShareService
   ) { }
+
   ngOnInit() {
     this.subscription = this.serviceShared.toChild$.pipe(filter((item) => this.field.name == item.name)).
       subscribe(item => {

@@ -10,8 +10,9 @@ import { filter } from "rxjs/operators";
   template: `
   <mat-form-field [formGroup]="group" class="app-input">
     <input matInput [formControlName]="field.name" [placeholder]="field.label"
-           (click)="onSendToParent(field.name)" [type]="field.inputType" class="click-input"
-           [readonly]="field.readonly">
+           (click)="onSendToParent(field.name)"
+           (keyup.enter)="onSendToParent(field.name)"
+           [type]="field.inputType" class="click-input" readonly>
     <ng-container *ngFor="let validation of field.validations;" ngProjectAs="mat-error">
       <mat-error *ngIf="group.get(field.name).hasError(validation.name)">
         {{validation.message}}
@@ -80,7 +81,8 @@ export class InputClickComponent implements OnInit,OnDestroy {
   }
 
   onSendToParent(name?: any): void {
-    //debug here
+    if (this.field.readonly) { return; }
+    //Call method from parent
     this.serviceShared.toParent({name:name});
   }
  

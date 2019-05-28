@@ -1,26 +1,33 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { FieldConfig } from "../field-config.model";
-import { Subscription } from "rxjs";
+import { Subscription, Observable } from "rxjs";
 import { ShareService } from "../../share.service";
-import { filter } from "rxjs/operators";
+import { filter, startWith, map } from "rxjs/operators";
 
 @Component({
-  selector: "app-input",
+  selector: 'app-auto-complete',
   template: `
-  <mat-form-field [formGroup]="group" class="app-input">
-    <input matInput [formControlName]="field.name"
-          [placeholder]="field.label" [type]="field.inputType"
-          [readonly]="field.readonly">
+    <mat-form-field [formGroup]="group" class="app-auto-complete">
+    <input matInput [formControlName]="field.name" [placeholder]="field.label"
+                    [type]="field.inputType" [readonly]="field.readonly"
+                    [matAutocomplete]="auto">
+
+    <mat-autocomplete #auto="matAutocomplete">
+      <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+        {{option}}
+      </mat-option>
+    </mat-autocomplete>
+
     <ng-container *ngFor="let validation of field.validations;" ngProjectAs="mat-error">
       <mat-error *ngIf="group.get(field.name).hasError(validation.name)">
         {{validation.message}}
       </mat-error>
     </ng-container>
   </mat-form-field>
-`,
+  `,
   styles: [`
- .app-input {
+ .app-auto-complete {
     width: 45%;
     margin: 5px;
 
@@ -33,7 +40,7 @@ import { filter } from "rxjs/operators";
 
   @media(max-width: 600px)
   {
-    .app-input {
+    .app-auto-complete {
       width:100%;
       margin: 5px;
 
@@ -44,14 +51,15 @@ import { filter } from "rxjs/operators";
       }
     }
   }
-
 `]
 })
-export class InputComponent implements OnInit,OnDestroy {
+export class AutoCompleteComponent implements OnInit {
+
   field: FieldConfig;
   group: FormGroup;
   subscription: Subscription;
-
+  options: Array<string>;
+  filteredOptions: Observable<string[]>;
   constructor(
     private serviceShared: ShareService
   ) { }
@@ -67,8 +75,30 @@ export class InputComponent implements OnInit,OnDestroy {
           this.group.get(this.field.name).patchValue(item.value);
         }
       });
+
+    // Set field.options to options (string array)
+    this.options = new Array;
+    if (this.field.options) {
+      this.options = this.field.options.map(item => {
+        return item.value;
+      }).slice();
+    }
+
+    this.filteredOptions = this.group.get(this.field.name).valueChanges
+      .pipe(
+        startWith(''),
+        map(value => this._filter(value))
+      );
   }
 
+  // field.options
+  // Filter for auto completed
+  private _filter(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.options.filter(option => option.toLowerCase().includes(filterValue));
+  }
+
+  // Destroy
   ngOnDestroy() {
     if (this.subscription) {
       this.subscription.unsubscribe();

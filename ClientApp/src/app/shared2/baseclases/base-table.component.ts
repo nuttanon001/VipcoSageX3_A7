@@ -39,12 +39,12 @@ export class BaseTableComponent<Model, Service extends BaseRestService<Model>> i
   @Input() WhereId: number | undefined;
   @Input() Where: string | undefined;
   @Input() isSubAction: string = "GetScroll/";
-  @Input() OptionFilter: string;
+  @Input() OptionFilter: Scroll;
 
   @Output() returnSelected: EventEmitter<Model> = new EventEmitter<Model>();
   @Output() returnSelectesd: EventEmitter<Array<Model>> = new EventEmitter<Array<Model>>();
   @Output() returnSelectedWith: EventEmitter<{ data: Model, option: number }> = new EventEmitter<{ data: Model, option: number }>();
-
+  @Output() filter: EventEmitter<Scroll> = new EventEmitter<Scroll>();
   // Parameter MatTable
   dataSource = new MatTableDataSource<Model>();
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -61,7 +61,8 @@ export class BaseTableComponent<Model, Service extends BaseRestService<Model>> i
   // Angular NgOnInit
   ngOnInit() {
     this.templateSelect = new Array;
-    if (this.searchBox) {
+    if (this.searchBox)
+    {
       this.searchBox.onlyCreate2 = this.isOnlyCreate;
       // console.log(this.searchBox.onlyCreate2);
     }
@@ -70,8 +71,16 @@ export class BaseTableComponent<Model, Service extends BaseRestService<Model>> i
     this.searchBox.search.subscribe(() => this.paginator.pageIndex = 0);
     // select where
     if (this.OptionFilter) {
-      this.searchBox.setInput = this.OptionFilter;
-      this.searchBox.search2 = this.OptionFilter;
+      //Set filter
+      this.searchBox.setInput = this.OptionFilter.Filter;
+      this.searchBox.search2 = this.OptionFilter.Filter;
+      //Set page
+      this.paginator.pageIndex = this.OptionFilter.Skip / this.OptionFilter.Take;
+      this.paginator.pageSize = this.OptionFilter.Take;
+      //Set Create
+      // if where is define use isOnlyCreate
+      this.searchBox.onlyCreate2 = this.OptionFilter.Where ? (this.OptionFilter.Where === "define" ? this.isOnlyCreate : true) : false;
+      this.isOnlyCreate = this.searchBox.onlyCreate2;
     }
 
     merge(this.sort.sortChange, this.paginator.page, this.searchBox.search, this.searchBox.onlyCreate)
@@ -89,7 +98,8 @@ export class BaseTableComponent<Model, Service extends BaseRestService<Model>> i
             WhereId: this.WhereId
           };
 
-          // console.log("Scroll", scroll);
+          // Emit scroll to MasterComponent
+          this.filter.emit(scroll);
 
           return this.service.getAllWithScroll(scroll, this.isSubAction);
         }),
@@ -107,16 +117,22 @@ export class BaseTableComponent<Model, Service extends BaseRestService<Model>> i
       ).subscribe(data => {
         this.dataSource.data = data;
         // Addtion
-        if (this.templateSelect && this.templateSelect.length > 0) {
+        if (this.templateSelect && this.templateSelect.length > 0)
+        {
           this.dataSource.data.forEach(row => {
-            if (this.isKeyIndex) {
+            if (this.isKeyIndex)
+            {
               this.templateSelect.forEach(value => {
-                if (value[this.isKeyIndex].toString() === row[this.isKeyIndex].toString()) {
+                if (value[this.isKeyIndex].toString() === row[this.isKeyIndex].toString())
+                {
                   this.selection.select(row)
                 }
               });
-            } else {
-              if (deepIndexOf(this.templateSelect, row) !== -1) {
+            }
+            else
+            {
+              if (deepIndexOf(this.templateSelect, row) !== -1)
+              {
                 this.selection.select(row)
               }
             }
@@ -128,46 +144,67 @@ export class BaseTableComponent<Model, Service extends BaseRestService<Model>> i
     this.selection = new SelectionModel<Model>(this.isMultiple, [], true);
     this.selection.onChange.subscribe(selected => {
       // Added
-      if (selected.added && selected.added.length > 0) {
-        if (this.isMultiple) {
+      if (selected.added && selected.added.length > 0)
+      {
+        // if 
+        if (this.isMultiple)
+        {
           selected.added.forEach(item => {
-            if (this.isKeyIndex) {
-              this.templateSelect.push(Object.assign({}, item));
-            } else {
-              if (deepIndexOf(this.templateSelect, item) === -1) {
+            if (this.isKeyIndex)
+            {
+              if (this.templateSelect.findIndex(template => template[this.isKeyIndex] === item[this.isKeyIndex]) === -1)
+              {
+                this.templateSelect.push(Object.assign({}, item));
+              }
+            }
+            else
+            {
+              if (deepIndexOf(this.templateSelect, item) === -1)
+              {
                 this.templateSelect.push(Object.assign({}, item));
               }
             }
             this.selectedRow = item;
           });
           this.returnSelectesd.emit(this.templateSelect);
-        } else {
-          if (selected.added[0]) {
+        }
+        else
+        {
+          if (selected.added[0])
+          {
             this.selectedRow = selected.added[0];
             this.returnSelected.emit(selected.added[0]);
           }
         }
       }
       // Remove
-      if (selected.removed && selected.removed.length > 0) {
+      if (selected.removed && selected.removed.length > 0)
+      {
         selected.removed.forEach(item => {
-          if (this.isKeyIndex) {
-            if (this.templateSelect && this.templateSelect.length > 0) {
+          if (this.isKeyIndex)
+          {
+            if (this.templateSelect && this.templateSelect.length > 0)
+            {
               this.templateSelect.forEach((value, index) => {
-                if (value[this.isKeyIndex].toString() === item[this.isKeyIndex].toString()) {
+                if (value[this.isKeyIndex].toString() === item[this.isKeyIndex].toString())
+                {
                   this.templateSelect.splice(index, 1);
                 }
               });
             }
-          } else {
-            if (this.templateSelect && this.templateSelect.length > 0) {
+          }
+          else
+          {
+            if (this.templateSelect && this.templateSelect.length > 0)
+            {
               let index = deepIndexOf(this.templateSelect, item);
               // console.log("Remove", index);
               this.templateSelect.splice(index, 1);
             }
           }
 
-          if (item === this.selectedRow) {
+          if (item === this.selectedRow)
+          {
             this.selectedRow = undefined;
             this.returnSelected.emit(undefined);
           }

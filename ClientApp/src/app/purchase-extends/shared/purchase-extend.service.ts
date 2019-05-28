@@ -5,7 +5,7 @@ import { PurchaseExtend } from './purchase-extend.model';
 import { HttpErrorHandler } from 'src/app/shared2/baseclases/http-error-handler.service';
 import { Scroll } from 'src/app/shared/scroll.model';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, catchError, shareReplay } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'

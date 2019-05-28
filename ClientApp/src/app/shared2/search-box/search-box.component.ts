@@ -37,6 +37,8 @@ export class SearchBox2Component implements OnInit {
   ngOnInit(): void {
     if (this.isOnlyCreate) {
       this.onlyCreate2 = this.isOnlyCreate;
+    } else {
+      this.onlyCreate2 = false;
     }
 
     const el = document.getElementById("search-box1");

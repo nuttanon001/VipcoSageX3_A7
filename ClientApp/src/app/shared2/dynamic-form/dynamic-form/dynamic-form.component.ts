@@ -1,18 +1,14 @@
 import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  OnInit,
-  OnDestroy,
-  Output
+  Component,EventEmitter,
+  Input,OnChanges,OnInit,
+  OnDestroy,Output
 } from "@angular/core";
+
 import {
-  FormGroup,
-  FormBuilder,
-  Validators,
-  FormControl
+  FormGroup,FormBuilder,
+  Validators,FormControl
 } from "@angular/forms";
+
 import { FieldConfig, Validator, ReturnValue } from "../field-config.model";
 import { debounceTime, distinctUntilChanged } from "rxjs/operators";
 
@@ -21,7 +17,7 @@ import { debounceTime, distinctUntilChanged } from "rxjs/operators";
   exportAs: "dynamicForm",
   selector: "dynamic-form",
   template: `
-    <form [formGroup]="form" (submit)="onSubmit($event)">
+    <form [formGroup]="form" (submit)="onSubmit($event)" [ngStyle]="{'background-color': bgColor}">
       <ng-container *ngFor="let field of fields;">
         <ng-container *ngIf="field">
           <ng-container *ngIf="!field.hidden" dynamicField [field]="field" [group]="form">
@@ -30,10 +26,25 @@ import { debounceTime, distinctUntilChanged } from "rxjs/operators";
       </ng-container>
     </form>
   `,
-  styles: []
+  styles: [`
+  :host ::ng-deep .mat-form-field-underline {
+    bottom: 0.25em;
+    position: static;
+  }
+
+  :host ::ng-deep .mat-form-field-subscript-wrapper {
+    position: static;
+  }
+
+  :host ::ng-deep .mat-form-field-wrapper {
+    padding-bottom: 0.25em;
+    position: static;
+  }
+`]
 })
 export class DynamicFormComponent implements OnInit {
   @Input() fields: FieldConfig[] = [];
+  @Input() bgColor: string = "white"
   @Output() submit: EventEmitter<ReturnValue<any>> = new EventEmitter<ReturnValue<any>>();
   form: FormGroup;
   get value() {

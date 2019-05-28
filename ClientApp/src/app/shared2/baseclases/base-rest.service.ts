@@ -5,7 +5,7 @@ import {
 } from "@angular/common/http";
 // rxjs
 import { Observable } from "rxjs";
-import { catchError, retry, tap ,shareReplay} from "rxjs/operators";
+import { catchError, retry, tap ,shareReplay, switchMap} from "rxjs/operators";
 // models
 import { ScrollData } from "../basemode/scroll-data.model";
 import { Scroll } from "../basemode/scroll.model";
@@ -63,7 +63,7 @@ export abstract class BaseRestService<Model>{
 
   //===================== HTTP-Rest =============================\\
   /** GET Models from the server */
-  getAll(): Observable<any|Array<Model>> {
+  getAll(): Observable<Array<Model>> {
     return this.http.get<Array<Model>>(this.baseUrl)
       .pipe(shareReplay(),catchError(this.handleError("Get models.", new Array<Model>())));
   }
@@ -134,6 +134,17 @@ export abstract class BaseRestService<Model>{
       .pipe(shareReplay(),catchError(this.handleError("Add model", <Model>{})));
   }
 
+  /** add Model @param nObject */
+  addModel2(nObject: Model): Observable<any> {
+    // debug here
+    // console.log("Path:", this.baseUrl);
+    // console.log("Data is:", JSON.stringify(nObject));
+
+    return this.http.post(this.baseUrl, JSON.stringify(nObject), httpOptions)
+      .pipe(switchMap(value => {
+        return this.updateModelWithKey(<Model>value);
+      }), catchError(this.handleError("Add model", <Model>{})));
+  }
  
 
   /** update with key number */

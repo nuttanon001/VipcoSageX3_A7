@@ -33,7 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ClientApp\src\app\shared2\dynamic-form\" />
     <Folder Include="ClientApp\src\app\shared\resueable-component\" />
     <Folder Include="ClientApp\src\app\shared\resueable\" />
     <Folder Include="Migrations\" />

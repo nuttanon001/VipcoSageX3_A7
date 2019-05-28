@@ -1,6 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FieldConfig } from '../field-config.model';
 import { FormGroup } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { ShareService } from '../../share.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-text-area',
@@ -45,10 +48,32 @@ import { FormGroup } from '@angular/forms';
   }
 `]
 })
-export class TextAreaComponent implements OnInit {
+export class TextAreaComponent implements OnInit, OnDestroy {
   field: FieldConfig;
   group: FormGroup;
+  subscription: Subscription;
 
-  constructor() { }
-  ngOnInit() { }
+  constructor(
+    private serviceShared: ShareService
+  ) { }
+
+  ngOnInit() {
+    this.subscription = this.serviceShared.toChild$.pipe(filter((item) => this.field.name == item.name)).
+      subscribe(item => {
+        // console.log(item);
+        // Patch Value
+        if (this.field.continue) {
+          const value = this.group.get(this.field.name).value;
+          this.group.get(this.field.name).patchValue((value ? value + "," : "") + item.value);
+        } else {
+          this.group.get(this.field.name).patchValue(item.value);
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
 }

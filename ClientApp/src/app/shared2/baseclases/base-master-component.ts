@@ -12,6 +12,7 @@ import { BaseCommunicateService } from "./base-communicate.service";
 // services
 import { DialogsService } from "../../dialogs/shared/dialogs.service";
 import { AuthService } from 'src/app/core/auth/auth.service';
+import { Scroll } from '../basemode/scroll.model';
 
 export abstract class BaseMasterComponent
   <Model extends BaseModel,
@@ -38,6 +39,7 @@ export abstract class BaseMasterComponent
   onLoading: boolean;
   canSave: boolean;
   // scroll: Scroll;
+  filter: Scroll = { Where: "define"};
 
   /*
    * Property

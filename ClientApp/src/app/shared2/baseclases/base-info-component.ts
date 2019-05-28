@@ -57,6 +57,7 @@ export abstract class BaseInfoComponent<
       this.subscription2.unsubscribe();
     }
   }
+
   // on get data by key
   abstract onGetDataByKey(InfoValue: Model): void;
   // build form

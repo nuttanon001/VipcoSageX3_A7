@@ -16,6 +16,8 @@ import { InputClickComponent } from './dynamic-form/input/input-click.component'
 import { TextAreaComponent } from ".//dynamic-form/text-area/text-area.component";
 import { DynamicGroupFormComponent } from './dynamic-form/dynamic-group-form/dynamic-group-form.component';
 import { DateEventComponent } from './dynamic-form/date/date-event.component';
+import { AutoCompleteComponent } from './dynamic-form/input/auto-complete.component';
+import { EmptyComponent } from './dynamic-form/empty/empty.component';
 
 @NgModule({
   imports: [
@@ -27,6 +29,7 @@ import { DateEventComponent } from './dynamic-form/date/date-event.component';
   declarations: [
     CheckboxComponent,
     DateComponent,
+    DateEventComponent,
     InputComponent,
     InputClickComponent,
     SelectComponent,
@@ -36,22 +39,27 @@ import { DateEventComponent } from './dynamic-form/date/date-event.component';
     DynamicFormComponent,
     DynamicGroupFormComponent,
     DynamicFieldDirective,
-    DateEventComponent,
+    AutoCompleteComponent,
+    EmptyComponent,
   ],
   exports: [
     DynamicFormComponent,
     DynamicGroupFormComponent,
-    DynamicFieldDirective],
+    DynamicFieldDirective
+  ],
   entryComponents: [
     CheckboxComponent,
     DateComponent,
+    DateEventComponent,
     InputComponent,
     InputClickComponent,
     SelectComponent,
     RadiobuttonComponent,
     ButtonComponent,
     TextAreaComponent,
-    DateEventComponent
+    AutoCompleteComponent,
+    EmptyComponent,
   ]
 })
+
 export class SharedModule { }

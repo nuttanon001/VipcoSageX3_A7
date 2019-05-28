@@ -33,8 +33,6 @@ export class PurchaseExtendInfoComponent
 
   // Methods
   onGetDataByKey(InfoValue: PurchaseExtend): void {
-    console.log(InfoValue);
-
     if (InfoValue && InfoValue.PurchaseExtendId) {
       // if set copy
       this.isCopying = InfoValue.Copying;
@@ -217,7 +215,7 @@ export class PurchaseExtendInfoComponent
                         PurchaseLineExtendId: 0,
                         PurchaseExtendId: this.InfoValue.PurchaseExtendId,
                         ItemCode: pure.ItemCode,
-                        ItemName: pure.ItemName,
+                        ItemName: pure.ItemName.substring(0,498),
                         PrLine: pure.PrLine,
                         PrNumber: pure.PrNumber,
                         Quantity: pure.Quantity,

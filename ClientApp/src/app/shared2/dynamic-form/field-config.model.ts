@@ -52,7 +52,9 @@ export enum typeField {
   date = "date",
   dateevent = "dateevent",
   radiobutton = "radiobutton",
-  checkbox = "checkbox"
+  checkbox = "checkbox",
+  autocomplete = "autocomplete",
+  empty = "empty"
 }
 
 export enum ValidatorField {

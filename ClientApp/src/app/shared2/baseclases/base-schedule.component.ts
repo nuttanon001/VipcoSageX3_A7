@@ -40,7 +40,7 @@ export abstract class BaseScheduleComponent<Model, Service extends BaseRestServi
   first: number = 0;
   pageRow: number = 50;
   needReset: boolean = false;
-  tableHeight: string;
+  tableHeight: string = "50px";;
   sizeForm: number = 220;
 
   ngOnInit() {
@@ -134,11 +134,12 @@ export abstract class BaseScheduleComponent<Model, Service extends BaseRestServi
     if (!this.loading) {
       // console.log("loadDataLazy");
       // set first
+      this.pageRow = (event.rows || 50);
       this.first = event.first;
       // imitate db connection over a network
       this.reportForm.patchValue({
         Skip: event.first,
-        Take: (event.rows || 15),
+        Take: (event.rows || 50),
         SortField: event.sortField,
         SortOrder: event.sortOrder,
       });

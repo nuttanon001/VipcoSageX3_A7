@@ -9,7 +9,8 @@ import { BaseRestService } from "./base-rest.service";
 // import { DatatableComponent, TableColumn } from "@swimlane/ngx-datatable";
 
 /** base-dialog component*/
-export abstract class BaseDialogEntryOnlyComponent<Model extends BaseModel> implements OnInit {
+export abstract class BaseDialogEntryOnlyComponent<Model extends BaseModel>
+  implements OnInit {
   /** cutting-plan-dialog ctor */
   constructor(
     protected dialogRef: MatDialogRef<any>

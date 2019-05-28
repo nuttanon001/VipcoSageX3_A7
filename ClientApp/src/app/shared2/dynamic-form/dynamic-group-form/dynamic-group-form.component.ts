@@ -70,8 +70,7 @@ export class DynamicGroupFormComponent implements OnInit {
 
         if (!this.form.valid) {
           this.validateAllFormFields(this.form);
-
-        } 
+        }
       });
   }
   // on Submit
